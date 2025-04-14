@@ -1,27 +1,44 @@
+#include "beetle_hdr.h"
 #include <Adafruit_PWMServoDriver.h>
 Adafruit_PWMServoDriver board1 = Adafruit_PWMServoDriver(0x40);
 
 #define SERVOMIN  125
 #define SERVOMAX  625
-#define SWEEP_DELAY 20  // ms between degree movements
+#define SWEEP_DELAY 20
+#define PWM_FREQ 60
 
-// Customizable starting angles
-#define COXA_START_ANGLE  90
-#define FEMUR_START_ANGLE 35 
-#define TIBIA_START_ANGLE 40
+// Servo control structure for each leg
+struct Leg {
+  String name;
+  uint8_t coxaPin;
+  uint8_t femurPin;
+  uint8_t tibiaPin;
+  int coxaAngle;
+  int femurAngle;
+  int tibiaAngle;
+};
 
-int coxaAngle = COXA_START_ANGLE;
-int femurAngle = FEMUR_START_ANGLE;
-int tibiaAngle = TIBIA_START_ANGLE;
+// Initialize all legs with hardware-defined pins
+Leg legs[6] = {
+  {"rf", cRFCoxaPin, cRFFemurPin, cRFTibiaPinESP, COXAS_START_ANGLE, FEMURS_START_ANGLE, TIBIAS_START_ANGLE},
+  {"rm", cRMCoxaPin, cRMFemurPin, cRMTibiaPin, COXAS_START_ANGLE, FEMURS_START_ANGLE, TIBIAS_START_ANGLE},
+  {"rb", cRBCoxaPin, cRBFemurPin, cRBTibiaPin, COXAS_START_ANGLE, FEMURS_START_ANGLE, TIBIAS_START_ANGLE},
+  {"lf", cLFCoxaPin, cLFFemurPin, cLFTibiaPinESP, COXAS_START_ANGLE, FEMURS_START_ANGLE, TIBIAS_START_ANGLE},
+  {"lm", cLMCoxaPin, cLMFemurPin, cLMTibiaPin, COXAS_START_ANGLE, FEMURS_START_ANGLE, TIBIAS_START_ANGLE},
+  {"lb", cLBCoxaPin, cLBFemurPin, cLBTibiaPin, COXAS_START_ANGLE, FEMURS_START_ANGLE, TIBIAS_START_ANGLE}
+};
 
-void performWave();
+Leg* currentLeg = &legs[1]; // Default to right middle (rm)
 
 void setup() {
   Serial.begin(9600);
-  board1.begin();
-  board1.setPWMFreq(60);
   
-  initializeServos();
+  // Initialize PCA9685
+  board1.begin();
+  board1.setPWMFreq(PWM_FREQ);
+  
+  // Initialize all servos to start positions
+  initializeAllServos();
   printHelp();
 }
 
@@ -29,12 +46,31 @@ void loop() {
   handleSerialInput();
 }
 
+//=== Servo Control Functions ===//
+void setServoAngle(uint8_t pin, int angle) {
+  if(pin < 16) { // PCA9685 pins
+    board1.setPWM(pin, 0, angleToPulse(angle));
+  }
+  // Add ESP32 pin handling here if needed
+}
+
+void updateServo(uint8_t pin, int step, int &angle) {
+  int newAngle = constrain(angle + step, 0, 180);
+  if(newAngle != angle) {
+    angle = newAngle;
+    setServoAngle(pin, angle);
+    printCurrentLeg();
+  }
+}
+
+//=== Command Handling ===//
 void handleSerialInput() {
-  if (Serial.available() > 0) {
+  if (Serial.available()) {
     String input = Serial.readStringUntil('\n');
     input.trim();
-    
-    if (input.length() == 1) {
+    input.toLowerCase();
+
+    if(input.length() == 1) {
       handleKeyCommand(input.charAt(0));
     } else {
       handleTextCommand(input);
@@ -42,158 +78,146 @@ void handleSerialInput() {
   }
 }
 
-void handleKeyCommand(char key) {
-  switch(key) {
-    case 'q': updateServo(0, 5, coxaAngle); break;
-    case 'a': updateServo(0, -5, coxaAngle); break;
-    case 'w': updateServo(1, 5, femurAngle); break;
-    case 's': updateServo(1, -5, femurAngle); break;
-    case 'e': updateServo(2, 5, tibiaAngle); break;
-    case 'd': updateServo(2, -5, tibiaAngle); break;
-  }
-}
-
 void handleTextCommand(String input) {
-  input.toLowerCase();
-  
-  if (input == "wave") {
-    performWave();
-    return;
-  }
-
-  int spaceIndex = input.indexOf(' ');
-  
-  if (spaceIndex != -1) {
-    String joint = input.substring(0, spaceIndex);
-    String command = input.substring(spaceIndex + 1);
-    
-    if (command == "sweep") {
-      if (joint == "coxa") performSweep(0, coxaAngle);
-      else if (joint == "femur") performSweep(1, femurAngle);
-      else if (joint == "tibia") performSweep(2, tibiaAngle);
-      else Serial.println("Invalid joint");
+  // Check for leg selection
+  for(uint8_t i = 0; i < 6; i++) {
+    if(input == legs[i].name) {
+      currentLeg = &legs[i];
+      Serial.print("Selected leg: ");
+      Serial.println(currentLeg->name);
+      return;
     }
   }
+
+  if(input == "wave") {
+    performWave();
+  }
+  else if(input == "help") {
+    printHelp();
+  }
+  else if(input.endsWith("sweep")) {
+    handleSweepCommand(input);
+  }
 }
 
+void handleKeyCommand(char key) {
+  switch(key) {
+    case 'q': updateServo(currentLeg->coxaPin, 5, currentLeg->coxaAngle); break;
+    case 'a': updateServo(currentLeg->coxaPin, -5, currentLeg->coxaAngle); break;
+    case 'w': updateServo(currentLeg->femurPin, 5, currentLeg->femurAngle); break;
+    case 's': updateServo(currentLeg->femurPin, -5, currentLeg->femurAngle); break;
+    case 'e': updateServo(currentLeg->tibiaPin, 5, currentLeg->tibiaAngle); break;
+    case 'd': updateServo(currentLeg->tibiaPin, -5, currentLeg->tibiaAngle); break;
+  }
+}
+
+//=== Wave Function ===//
 void performWave() {
   // Save original positions
-  int originalCoxa = coxaAngle;
-  int originalFemur = femurAngle;
-  int originalTibia = tibiaAngle;
-
-  // Move to wave starting position
-  smoothMove(1, 100, femurAngle, 30);  // Move femur to 100°
-  
-  // Wave 3 times
-  for(int i = 0; i < 3; i++) {
-    // Coxa sweep from 130 to 50 while tibia moves from 45 to 25
-    coordinatedSweep(130, 50, 45, 25);
-    // Coxa sweep back from 50 to 130 while tibia moves back
-    coordinatedSweep(50, 130, 25, 45);
+  int originalAngles[6][3];
+  for(uint8_t i = 0; i < 6; i++) {
+    originalAngles[i][0] = legs[i].coxaAngle;
+    originalAngles[i][1] = legs[i].femurAngle;
+    originalAngles[i][2] = legs[i].tibiaAngle;
   }
 
-  // Return to original positions
-  smoothMove(0, originalCoxa, coxaAngle, 30);
-  smoothMove(1, originalFemur, femurAngle, 30);
-  smoothMove(2, originalTibia, tibiaAngle, 30);
-}
+  // Reset all legs to start positions
+  initializeAllServos();
 
-void coordinatedSweep(int coxaStart, int coxaEnd, int tibiaStart, int tibiaEnd) {
-  int steps = 20;  // Number of steps for the movement
-  for(int i = 0; i <= steps; i++) {
-    float ratio = (float)i / steps;
-    int currentCoxa = coxaStart + (coxaEnd - coxaStart) * ratio;
-    int currentTibia = tibiaStart + (tibiaEnd - tibiaStart) * ratio;
+  // Wave both middle legs
+  Leg* waveLegs[] = {&legs[1], &legs[4]}; // RM and LM
+  
+  for(uint8_t i = 0; i < 3; i++) {
+    // Raise femur
+    for(auto leg : waveLegs) {
+      smoothMove(leg->femurPin, 100, leg->femurAngle, 30);
+    }
     
-    board1.setPWM(0, 0, angleToPulse(currentCoxa));
-    board1.setPWM(2, 0, angleToPulse(currentTibia));
-    delay(SWEEP_DELAY);
+    // Wave motion
+    coordinatedSweep(130, 50, 45, 25, waveLegs);
+    coordinatedSweep(50, 130, 25, 45, waveLegs);
+    
+    // Lower femur
+    for(auto leg : waveLegs) {
+      smoothMove(leg->femurPin, FEMURS_START_ANGLE, leg->femurAngle, 30);
+    }
+  }
+
+  // Restore original positions
+  for(uint8_t i = 0; i < 6; i++) {
+    smoothMove(legs[i].coxaPin, originalAngles[i][0], legs[i].coxaAngle, 30);
+    smoothMove(legs[i].femurPin, originalAngles[i][1], legs[i].femurAngle, 30);
+    smoothMove(legs[i].tibiaPin, originalAngles[i][2], legs[i].tibiaAngle, 30);
   }
 }
 
-void smoothMove(int servoIndex, int targetAngle, int &currentAngle, int stepSize) {
-  while(abs(currentAngle - targetAngle) > stepSize) {
-    currentAngle += (targetAngle > currentAngle) ? stepSize : -stepSize;
-    board1.setPWM(servoIndex, 0, angleToPulse(currentAngle));
-    delay(SWEEP_DELAY);
+//=== Utility Functions ===//
+void initializeAllServos() {
+  for(uint8_t i = 0; i < 6; i++) {
+    setServoAngle(legs[i].coxaPin, COXAS_START_ANGLE);
+    setServoAngle(legs[i].femurPin, FEMURS_START_ANGLE);
+    setServoAngle(legs[i].tibiaPin, TIBIAS_START_ANGLE);
+    legs[i].coxaAngle = COXAS_START_ANGLE;
+    legs[i].femurAngle = FEMURS_START_ANGLE;
+    legs[i].tibiaAngle = TIBIAS_START_ANGLE;
   }
-  currentAngle = targetAngle;  // Ensure final position is exact
-  board1.setPWM(servoIndex, 0, angleToPulse(currentAngle));
-}
-
-
-void performSweep(int servoIndex, int &currentAngle) {
-  int originalAngle = currentAngle;
-  
-  // Sweep down to 0°
-  for (int angle = originalAngle; angle >= 0; angle--) {
-    updateServoDirect(servoIndex, angle, currentAngle);
-    delay(SWEEP_DELAY);
-  }
-  
-  // Sweep up to 180°
-  for (int angle = 0; angle <= 180; angle++) {
-    updateServoDirect(servoIndex, angle, currentAngle);
-    delay(SWEEP_DELAY);
-  }
-  
-  // Return to original position
-  for (int angle = 180; angle >= originalAngle; angle--) {
-    updateServoDirect(servoIndex, angle, currentAngle);
-    delay(SWEEP_DELAY);
-  }
-  
-  printAngles();
-}
-
-void updateServo(int servoIndex, int step, int &angle) {
-  int newAngle = constrain(angle + step, 0, 180);
-  if (newAngle != angle) {
-    angle = newAngle;
-    board1.setPWM(servoIndex, 0, angleToPulse(angle));
-    printAngles();
-  }
-}
-
-void updateServoDirect(int servoIndex, int newAngle, int &storage) {
-  storage = newAngle;
-  board1.setPWM(servoIndex, 0, angleToPulse(newAngle));
-}
-
-void initializeServos() {
-  coxaAngle = COXA_START_ANGLE;
-  femurAngle = FEMUR_START_ANGLE;
-  tibiaAngle = TIBIA_START_ANGLE;
-  
-  board1.setPWM(0, 0, angleToPulse(coxaAngle));
-  board1.setPWM(1, 0, angleToPulse(femurAngle));
-  board1.setPWM(2, 0, angleToPulse(tibiaAngle));
   delay(500);
 }
 
-void printAngles() {
-  Serial.print("Coxa:");
-  Serial.print(coxaAngle);
-  Serial.print("° Femur:");
-  Serial.print(femurAngle);
-  Serial.print("° Tibia:");
-  Serial.print(tibiaAngle);
+void coordinatedSweep(int coxaStart, int coxaEnd, int tibiaStart, int tibiaEnd, Leg** waveLegs) {
+  const uint8_t steps = 40;
+  for(uint8_t i = 0; i <= steps; i++) {
+    float ratio = (float)i / steps;
+    
+    for(auto leg : waveLegs) {
+      int coxa = coxaStart + (coxaEnd - coxaStart) * ratio;
+      int tibia = tibiaStart + (tibiaEnd - tibiaStart) * ratio;
+      
+      setServoAngle(leg->coxaPin, coxa);
+      setServoAngle(leg->tibiaPin, tibia);
+      leg->coxaAngle = coxa;
+      leg->tibiaAngle = tibia;
+    }
+    delay(SWEEP_DELAY);
+  }
+}
+
+void smoothMove(uint8_t pin, int targetAngle, int &currentAngle, uint8_t stepSize) {
+  while(abs(currentAngle - targetAngle) > stepSize) {
+    currentAngle += (targetAngle > currentAngle) ? stepSize : -stepSize;
+    setServoAngle(pin, currentAngle);
+    delay(SWEEP_DELAY);
+  }
+  currentAngle = targetAngle;
+  setServoAngle(pin, currentAngle);
+}
+
+//=== Helper Functions ===//
+int angleToPulse(int ang) {
+  return map(ang, 0, 180, SERVOMIN, SERVOMAX);
+}
+
+void printCurrentLeg() {
+  Serial.print(currentLeg->name);
+  Serial.print(" - Coxa:");
+  Serial.print(currentLeg->coxaAngle);
+  Serial.print("°, Femur:");
+  Serial.print(currentLeg->femurAngle);
+  Serial.print("°, Tibia:");
+  Serial.print(currentLeg->tibiaAngle);
   Serial.println("°");
 }
 
 void printHelp() {
-  Serial.println("\nServo Control System");
-  Serial.println("Quick commands (single key):");
+  Serial.println("\nBeetleBot Control System");
+  Serial.println("Leg Selection Commands:");
+  Serial.println("rf, rm, rb, lf, lm, lb");
+  Serial.println("\nMovement Commands (after selecting leg):");
   Serial.println("Q/A - Coxa +/-");
   Serial.println("W/S - Femur +/-");
   Serial.println("E/D - Tibia +/-");
-  Serial.println("\nAdvanced commands:");
-  Serial.println("<joint> sweep - Full range motion");
-  Serial.println("  (coxa|femur|tibia) sweep");
-  Serial.println("wave - Beetlebot waves at you animation");
-}
-
-int angleToPulse(int ang) {
-  return map(ang, 0, 180, SERVOMIN, SERVOMAX);
+  Serial.println("\nAdvanced Commands:");
+  Serial.println("<leg> sweep - Full range motion");
+  Serial.println("wave - Middle legs waving animation");
+  Serial.println("help - Show this message");
 }
