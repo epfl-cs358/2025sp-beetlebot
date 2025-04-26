@@ -48,7 +48,7 @@ Body - Coxa - Femur - Tibia (end of feet)
 
 #define cRFCoxaPin      15   //Front Right leg Hip Horizontal
 #define cRFFemurPin     14   //Front Right leg Hip Vertical
-#define cRFTibiaPinESP  18   //Front Right leg Knee (plugged into the esp32$
+#define cRFTibiaPinESP  18   //Front Right leg Knee (plugged into the esp32)
 
 #define cLMCoxaPin      6   //Middle Left leg Hip Horizontal
 #define cLMFemurPin     5   //Middle Left leg Hip Vertical
@@ -149,7 +149,12 @@ Body - Coxa - Femur - Tibia (end of feet)
 #define cClawInitPosX     0      //Start positions of the Claw
 //--------------------------------------------------------------------
 // Add at the bottom of beetle_hdr.h
-// Start angles for all joints
-#define COXAS_START_ANGLE  90
-#define FEMURS_START_ANGLE 35 
-#define TIBIAS_START_ANGLE 40
+// In beetle_hdr.h add these constants:
+#define COXAS_SIT_ANGLE 90
+#define FEMURS_SIT_ANGLE 90
+#define TIBIAS_SIT_ANGLE 90
+
+// Existing standing positions remain:
+#define COXAS_STAND_ANGLE 90
+#define FEMURS_STAND_ANGLE 10
+#define TIBIAS_STAND_ANGLE 80
