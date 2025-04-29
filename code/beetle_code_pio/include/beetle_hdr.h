@@ -6,6 +6,15 @@
             LF        RF
             LM        RM
             LB        RB
+            
+            X
+            ^
+            |
+           Z. --> Y 
+
+            X = Forward/backward movement
+            Y = Left/right movement
+            Z = Up/down movement
 
 Body - Coxa - Femur - Tibia (end of feet)
 
@@ -14,31 +23,31 @@ Body - Coxa - Femur - Tibia (end of feet)
 //--------------------------------------------------------------------
 
 //[BODY DIMENSIONS]
-#define cCoxaLength     35
-#define cFemurLength    80
-#define cTibiaLength    120
+#define cCoxaLength     38.4
+#define cFemurLength    43.03
+#define cTibiaLength    70
 
 // Default Coxa setup angle in tenths of a degree (decimals = 1)
-#define cRRCoxaAngle1   -600   // Right Rear
+#define cRRCoxaAngle1   -600   // Right Back
 #define cRMCoxaAngle1    0     // Right Middle
 #define cRFCoxaAngle1    600   // Right Front
 #define cLMCoxaAngle1    0       //Default Coxa setup angle in tenths of a degree
 #define cLMCoxaAngle1    0     // Left Middle
 #define cLFCoxaAngle1    600   // Left Front decimals = 1
 
-#define cRROffsetX      -69     //Distance X from center of the body to the Right Rear coxa
-#define cRROffsetZ      119     //Distance Z from center of the body to the Right Rear coxa
-#define cRMOffsetX      -138    //Distance X from center of the body to the Right Middle coxa
-#define cRMOffsetZ      0       //Distance Z from center of the body to the Right Middle coxa
-#define cRFOffsetX      -69     //Distance X from center of the body to the Right Front coxa
-#define cRFOffsetZ      -119    //Distance Z from center of the body to the Right Front coxa
+#define cRBOffsetX      -cRFOffsetX     //Distance X from center of the body to the Right Back coxa
+#define cRBOffsetY      cRFOffsetY     //Distance Y from center of the body to the Right Back coxa
+#define cRMOffsetX      0    //Distance X from center of the body to the Right Middle coxa
+#define cRMOffsetY      69       //Distance Y from center of the body to the Right Middle coxa
+#define cRFOffsetX      79.26     //Distance X from center of the body to the Right Front coxa
+#define cRFOffsetY      49.26    //Distance Y from center of the body to the Right Front coxa
 
-#define cLROffsetX      69      //Distance X from center of the body to the Left Rear coxa
-#define cLROffsetZ      119     //Distance Z from center of the body to the Left Rear coxa
-#define cLMOffsetX      138     //Distance X from center of the body to the Left Middle coxa
-#define cLMOffsetZ      0       //Distance Z from center of the body to the Left Middle coxa
-#define cLFOffsetX      69      //Distance X from center of the body to the Left Front coxa
-#define cLFOffsetZ      -119    //Distance Z from center of the body to the Left Front coxa
+#define cLBOffsetX      -cRFOffsetX      //Distance X from center of the body to the Left Back coxa
+#define cLBOffsetY      -cRFOffsetY     //Distance Y from center of the body to the Left Back coxa
+#define cLMOffsetX      0     //Distance X from center of the body to the Left Middle coxa
+#define cLMOffsetY      -cRMOffsetY       //Distance Y from center of the body to the Left Middle coxa
+#define cLFOffsetX      cRFOffsetX      //Distance X from center of the body to the Left Front coxa
+#define cLFOffsetY      -cRFOffsetY    //Distance Y from center of the body to the Left Front coxa
 //--------------------------------------------------------------------
 
 //[PIN NUMBERS]
@@ -58,19 +67,19 @@ Body - Coxa - Femur - Tibia (end of feet)
 #define cRMFemurPin     12   //Middle Right leg Hip Vertical
 #define cRMTibiaPin     13   //Middle Right leg Knee
 
-#define cLBCoxaPin      7   //Rear Left leg Hip Horizontal
-#define cLBFemurPin     8   //Rear Left leg Hip Vertical
-#define cLBTibiaPin     2   //Rear Left leg Knee
+#define cLBCoxaPin      7   //Back Left leg Hip Horizontal
+#define cLBFemurPin     8   //Back Left leg Hip Vertical
+#define cLBTibiaPin     2   //Back Left leg Knee
 
-#define cRBCoxaPin      9   //Rear Right leg Hip Horizontal
-#define cRBFemurPin     10   //Rear Right leg Hip Vertical
-#define cRBTibiaPin     11   //Rear Right leg Knee
+#define cRBCoxaPin      9   //Back Right leg Hip Horizontal
+#define cRBFemurPin     10   //Back Right leg Hip Vertical
+#define cRBTibiaPin     11   //Back Right leg Knee
 
 //#define cClawPin       18   //Claw Servo // havent implemented this yet
 //--------------------------------------------------------------------
 
 //[MIN/MAX ANGLES]
-#define cRRCoxaMin1     -650      //Mechanical limits of the Right Rear Leg
+#define cRRCoxaMin1     -650      //Mechanical limits of the Right Back Leg
 #define cRRCoxaMax1     650
 #define cRRFemurMin1    -900
 #define cRRFemurMax1    550
@@ -91,7 +100,7 @@ Body - Coxa - Femur - Tibia (end of feet)
 #define cRFTibiaMin1    -400
 #define cRFTibiaMax1    750
 
-#define cLRCoxaMin1     -650      //Mechanical limits of the Left Rear Leg
+#define cLRCoxaMin1     -650      //Mechanical limits of the Left Back Leg
 #define cLRCoxaMax1     650
 #define cLRFemurMin1    -900
 #define cLRFemurMax1    550
@@ -122,7 +131,7 @@ Body - Coxa - Femur - Tibia (end of feet)
 #define CHexInitY	80
 
 
-#define cRRInitPosX     CHexInitXZCos60      //Start positions of the Right Rear leg
+#define cRRInitPosX     CHexInitXZCos60      //Start positions of the Right Back leg
 #define cRRInitPosY     CHexInitY
 #define cRRInitPosZ     CHexInitXZSin60
 
@@ -134,7 +143,7 @@ Body - Coxa - Femur - Tibia (end of feet)
 #define cRFInitPosY     CHexInitY
 #define cRFInitPosZ     -CHexInitXZSin60
 
-#define cLRInitPosX     CHexInitXZCos60      //Start positions of the Left Rear leg
+#define cLRInitPosX     CHexInitXZCos60      //Start positions of the Left Back leg
 #define cLRInitPosY     CHexInitY
 #define cLRInitPosZ     CHexInitXZSin60
 
@@ -148,13 +157,16 @@ Body - Coxa - Femur - Tibia (end of feet)
 
 #define cClawInitPosX     0      //Start positions of the Claw
 //--------------------------------------------------------------------
-// Add at the bottom of beetle_hdr.h
-// In beetle_hdr.h add these constants:
+
 #define COXAS_SIT_ANGLE 90
 #define FEMURS_SIT_ANGLE 90
 #define TIBIAS_SIT_ANGLE 90
 
-// Existing standing positions remain:
 #define COXAS_STAND_ANGLE 90
-#define FEMURS_STAND_ANGLE 10
-#define TIBIAS_STAND_ANGLE 80
+#define FEMURS_STAND_ANGLE 0
+#define TIBIAS_STAND_ANGLE 35
+
+#define COXAS_CURL_ANGLE 90
+#define FEMURS_CURL_ANGLE 180
+#define TIBIAS_CURL_ANGLE 35
+

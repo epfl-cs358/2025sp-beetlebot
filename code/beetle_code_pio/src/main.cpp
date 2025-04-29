@@ -1,22 +1,5 @@
-#include <Adafruit_PWMServoDriver.h>
-#include <beetle_hdr.h>
+#include <main.h>
 Adafruit_PWMServoDriver board1 = Adafruit_PWMServoDriver(0x40);
-
-#define SERVOMIN  125
-#define SERVOMAX  625
-#define SWEEP_DELAY 20  // ms between degree movements
-#define PWM_FREQ 60
-
-// Servo control structure for each leg
-struct Leg {
-  String name;
-  uint8_t coxaPin;
-  uint8_t femurPin;
-  uint8_t tibiaPin;
-  int coxaAngle;
-  int femurAngle;
-  int tibiaAngle;
-};
 
 // Update leg initialization
 Leg legs[6] = {
@@ -28,30 +11,24 @@ Leg legs[6] = {
   {"lb", cLBCoxaPin, cLBFemurPin, cLBTibiaPin, COXAS_SIT_ANGLE, FEMURS_SIT_ANGLE, TIBIAS_SIT_ANGLE}
 };
 
-Leg* currentLeg = &legs[3]; // Default to right middle (rm)
+// Home positions (modify from beetle_hdr.h if needed) RF,RM,RB,LB,LM,LF
+const float HOME_X[6] = {155.0, 0.0, -155.0, -155.0, 0.0, 155.0};
+const float HOME_Y[6] = {82.0, 116.0, 82.0, -82.0, -116.0, -82.0};
+const float HOME_Z[6] = {-80.0, -80.0, -80.0, -80.0, -80.0, -80.0};
 
-// Function prototypes
-void initializeAllServos();
-void performWave();
-void performSweep(int servoIndex, int &currentAngle);
-void printHelp();
-void coordinatedSweep(uint8_t coxaPin, int coxaStart, int coxaEnd,
-                    uint8_t tibiaPin, int tibiaStart, int tibiaEnd,
-                    Leg &leg);
-void setServoAngle(uint8_t pin, int angle);
-void handleSerialInput();
-void handleKeyCommand(char key);
-void updateServo(uint8_t servoIndex, int step, int &angle);
-void updateServoDirect(int servoIndex, int newAngle, int &storage);
-void handleTextCommand(String input);
-void smoothMove(int servoIndex, int targetAngle, int &currentAngle, int stepSize);
-int angleToPulse(int ang);
-void handleSweepCommand(String input);
-void printCurrentLegAngles();
-void moveToStandPosition();
-void moveToSitPosition();
-void moveToStandPosition();
-void setServoAngle(uint8_t pin, int angle);
+Leg* currentLeg = &legs[3]; // Default to right middle (rm)
+bool walkMode = false;
+int walkDirection = 0; // 0:stop, 1:forward, 2:back, 3:left, 4:right
+unsigned long prevGaitTime = 0;
+int gaitStep = 0;
+
+int tripodStepPhase = 0;  // 0-3 phase counter
+
+float current_X[6] = {0};
+float current_Y[6] = {0};
+float current_Z[6] = {0};
+
+float L0, L3;
 
 void setup() {
   Serial.begin(9600);
@@ -72,6 +49,9 @@ void setup() {
 
 void loop() {
   handleSerialInput();
+  if (walkMode) {
+    if (walkDirection != 0) tripod_gait();
+  }
 }
 
 void handleSerialInput() {
@@ -88,6 +68,15 @@ void handleSerialInput() {
 }
 
 void handleKeyCommand(char key) {
+  if (walkMode) {
+    switch(key) {
+      case 'w': tripod_gait(); break;
+      case 's': walkDirection = 2; break;
+      case 'a': walkDirection = 3; break;
+      case 'd': walkDirection = 4; break;
+      default: walkDirection = 0; break;
+    }
+  } else {
   switch(key) {
     case 'q': updateServo(currentLeg->coxaPin, 5, currentLeg->coxaAngle); break;
     case 'a': updateServo(currentLeg->coxaPin, -5, currentLeg->coxaAngle); break;
@@ -96,6 +85,7 @@ void handleKeyCommand(char key) {
     case 'e': updateServo(currentLeg->tibiaPin, 5, currentLeg->tibiaAngle); break;
     case 'd': updateServo(currentLeg->tibiaPin, -5, currentLeg->tibiaAngle); break;
   }
+}
 }
 
 void handleTextCommand(String input) {
@@ -113,8 +103,15 @@ void handleTextCommand(String input) {
 
   if(input == "wave") {
     performWave();
-  }
-  else if(input == "help") {
+  } else if (input == "walk") {
+    walkMode = true;
+    moveToStandPosition();
+    Serial.println("Walk mode: Press W to step forward");
+  } else if (input == "quit") {
+    walkMode = false;
+    moveToStandPosition();
+    Serial.println("Exited Walk Mode");
+  } else if(input == "help") {
     printHelp();
   }
   else if(input == "stand") {
@@ -122,9 +119,14 @@ void handleTextCommand(String input) {
   }
   else if(input == "sit") {
     moveToSitPosition();
+  } else if (input == "curl") {
+    moveToCurlPosition();
   }
   else if(input.endsWith("sweep")) {
     handleSweepCommand(input);
+  } 
+  else {
+    Serial.println("Unknown command. Type 'help' for a list of commands.");
   }
 }
 
@@ -161,6 +163,13 @@ void moveToSitPosition() {
   }
 }
 
+void moveToCurlPosition(){
+  for(uint8_t i = 0; i < 6; i++) {
+    smoothMove(legs[i].coxaPin, COXAS_CURL_ANGLE, legs[i].coxaAngle, 30);
+    smoothMove(legs[i].femurPin, FEMURS_CURL_ANGLE, legs[i].femurAngle, 30);
+    smoothMove(legs[i].tibiaPin, TIBIAS_CURL_ANGLE, legs[i].tibiaAngle, 30);
+  }
+}
 
 void performWave() {
   // Save original positions of the middle legs
@@ -216,14 +225,13 @@ void coordinatedSweep(uint8_t coxaPin, int coxaStart, int coxaEnd,
   }
 }
 
-void smoothMove(int servoIndex, int targetAngle, int &currentAngle, int stepSize) {
-  while(abs(currentAngle - targetAngle) > stepSize) {
-    currentAngle += (targetAngle > currentAngle) ? stepSize : -stepSize;
-    board1.setPWM(servoIndex, 0, angleToPulse(currentAngle));
+void smoothMove(uint8_t pin, int targetAngle, int &currentAngle, int stepSize) {
+  while(abs(currentAngle - targetAngle) > 0) {
+    int step = constrain(targetAngle - currentAngle, -stepSize, stepSize);
+    currentAngle += step;
+    setServoAngle(pin, currentAngle);
     delay(SWEEP_DELAY);
   }
-  currentAngle = targetAngle;  // Ensure final position is exact
-  board1.setPWM(servoIndex, 0, angleToPulse(currentAngle));
 }
 
 
@@ -253,9 +261,10 @@ void performSweep(int servoIndex, int &currentAngle) {
 
 void setServoAngle(uint8_t pin, int angle) {
   if(pin == cLFTibiaPinESP || pin == cRFTibiaPinESP) { // ESP32 direct pins
-    // Convert angle to ESP32 LEDC compatible pulse width
-    uint32_t pulse = map(angle, 0, 180, 500, 2500); // Convert angle to microseconds
-    ledcWrite((pin == cLFTibiaPinESP) ? 0 : 1, pulse * 65536 / 20000); // Convert to duty cycle
+    // Add calibration offset if needed
+  angle = constrain(angle + 5, 0, 180); // Example +5° offset
+  uint32_t pulse = map(angle, 0, 180, 500, 2500);
+  ledcWrite((pin == cLFTibiaPinESP) ? 0 : 1, pulse * 65536 / 20000);
   }
   else if(pin < 16) { // PCA9685 pins
     board1.setPWM(pin, 0, angleToPulse(angle));
@@ -286,7 +295,7 @@ void initializeAllServos() {
     legs[i].femurAngle = FEMURS_SIT_ANGLE;
     legs[i].tibiaAngle = TIBIAS_SIT_ANGLE;
   }
-  delay(500);
+  delay(300); // Allow servos time to settle
 }
 
 void printCurrentLegAngles() {
@@ -300,19 +309,105 @@ void printCurrentLegAngles() {
   Serial.println("°");
 }
 
-
-void printHelp() {
-  Serial.println("\nServo Control System");
-  Serial.println("Quick commands (single key):");
-  Serial.println("Q/A - Coxa +/-");
-  Serial.println("W/S - Femur +/-");
-  Serial.println("E/D - Tibia +/-");
-  Serial.println("\nAdvanced commands:");
-  Serial.println("<joint> sweep - Full range motion");
-  Serial.println("  (coxa|femur|tibia) sweep");
-  Serial.println("wave - Beetlebot waves at you animation");
-}
-
 int angleToPulse(int ang) {
   return map(ang, 0, 180, SERVOMIN, SERVOMAX);
+}
+
+void tripod_gait() {
+  const int tripod1[] = {0, 2, 4}; // RF, RB, LM
+  const int tripod2[] = {1, 3, 5}; // RM, LF, LB
+  static int phase = 0;
+  static unsigned long lastStepTime = 0;
+
+  if (millis() - lastStepTime < GAIT_CYCLE_MS / 4) return;
+  lastStepTime = millis();
+
+  float stepX = STEP_DISTANCE;
+  float liftZ = LIFT_HEIGHT;
+
+  switch (phase) {
+      case 0: // Lift tripod1
+          for (int i : tripod1) {
+              current_Z[i] = HOME_Z[i] + liftZ;
+          }
+          phase = 1;
+          break;
+      case 1: // Move tripod1 forward
+          for (int i : tripod1) {
+              current_X[i] = HOME_X[i] + stepX;
+          }
+          phase = 2;
+          break;
+      case 2: // Lower tripod1
+          for (int i : tripod1) {
+              current_Z[i] = HOME_Z[i];
+          }
+          phase = 3;
+          break;
+      case 3: // Move tripod2 back
+          for (int i : tripod2) {
+              current_X[i] = HOME_X[i] - stepX;
+          }
+          phase = 0;
+          break;
+  }
+
+  // Update all legs via IK
+  for (int i = 0; i < 6; i++) {
+      leg_IK(i, current_X[i], current_Y[i], current_Z[i]);
+  }
+}
+
+void moveTripod(int legIndices[], int femurDelta, int tibiaDelta) {
+  for (int i = 0; i < 3; i++) {
+    int legIdx = legIndices[i];
+    smoothMove(legs[legIdx].femurPin, legs[legIdx].femurAngle + femurDelta, legs[legIdx].femurAngle, 10);
+    smoothMove(legs[legIdx].tibiaPin, legs[legIdx].tibiaAngle + tibiaDelta, legs[legIdx].tibiaAngle, 10);
+  }
+}
+
+void leg_IK(int leg_num, float X, float Y, float Z) {
+  // Using dimensions from beetle_hdr.h
+  const float COXA_LENGTH = cCoxaLength;
+  const float FEMUR_LENGTH = cFemurLength;
+  const float TIBIA_LENGTH = cTibiaLength;
+
+  // Calculate angles
+  float L0 = sqrt(sq(X) + sq(Y)) - COXA_LENGTH;
+  float L3 = sqrt(sq(L0) + sq(Z));
+  
+  if (L3 >= (TIBIA_LENGTH + FEMUR_LENGTH)) return; // Skip if unreachable
+
+  // Tibia angle
+  float phi_tibia = acos((sq(FEMUR_LENGTH) + sq(TIBIA_LENGTH) - sq(L3)) / (2 * FEMUR_LENGTH * TIBIA_LENGTH));
+  float theta_tibia = degrees(phi_tibia) - 23.0; // Adjust with calibration if needed
+
+  // Femur angle
+  float gamma_femur = atan2(Z, L0);
+  float phi_femur = acos((sq(FEMUR_LENGTH) + sq(L3) - sq(TIBIA_LENGTH)) / (2 * FEMUR_LENGTH * L3));
+  float theta_femur = degrees(phi_femur + gamma_femur) + 14.0 + 90.0;
+
+  // Coxa angle
+  float theta_coxa = degrees(atan2(X, Y));
+
+  // Apply calibration offsets (define in beetle_hdr.h if needed)
+  theta_coxa += 0;   // Add calibration offset
+  theta_femur += 0;
+  theta_tibia += 0;
+
+  // Constrain angles to servo limits (0-180)
+  theta_coxa = constrain(theta_coxa, 0, 180);
+  theta_femur = constrain(theta_femur, 0, 180);
+  theta_tibia = constrain(theta_tibia, 0, 180);
+
+  // Update servo positions (using your servo driver)
+  Leg* leg = &legs[leg_num];
+  setServoAngle(leg->coxaPin, theta_coxa);
+  setServoAngle(leg->femurPin, theta_femur);
+  setServoAngle(leg->tibiaPin, theta_tibia);
+
+  // Store current angles
+  leg->coxaAngle = theta_coxa;
+  leg->femurAngle = theta_femur;
+  leg->tibiaAngle = theta_tibia;
 }
