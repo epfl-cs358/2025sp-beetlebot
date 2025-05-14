@@ -16,7 +16,7 @@ VL53L1X sensors[sensorCount];
 // TODO: see if wire setup is the same on the ESP32
 void setup() {
   while (!Serial) {}
-  Serial.begin(9600);
+  Serial.begin(115200);
   Wire.begin();
   Wire.setClock(400000); // use 400 kHz I2C
 
@@ -56,8 +56,8 @@ bool trySetup() {
     sensors[i].setMeasurementTimingBudget(20000); // Minimum for short distance mode (in microseconds)
     sensors[i].startContinuous(20); // Minimum since it must be >= to timing budget (in ms)
 
-    return true;
   }
+    return true;
 }
 
 // Check once if sensor i has a new value in mm (non blocking)
