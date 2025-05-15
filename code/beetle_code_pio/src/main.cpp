@@ -288,8 +288,8 @@ void angleTab (int angles[6][3], int walk, int grounded [4][3], int lifted [4][3
         for (int j = 0; j < 3; ++j) {
             angles[0][j] = grounded[walk][j];
             angles[1][j] = lifted[walk][j];
-            angles[2][j] = grounded[walk][j];
-            angles[3][j] = lifted[walk][j];
+            angles[2][j] = lifted[walk][j];
+            angles[3][j] = grounded[walk][j];
             angles[4][j] = grounded[walk][j];
             angles[5][j] = lifted[walk][j];
         }
@@ -297,8 +297,8 @@ void angleTab (int angles[6][3], int walk, int grounded [4][3], int lifted [4][3
         for (int j = 0; j < 3; ++j) {
             angles[0][j] = lifted[walk][j];
             angles[1][j] = grounded[walk][j];
-            angles[2][j] = lifted[walk][j];
-            angles[3][j] = grounded[walk][j];
+            angles[2][j] = grounded[walk][j];
+            angles[3][j] = lifted[walk][j];
             angles[4][j] = lifted[walk][j];
             angles[5][j] = grounded[walk][j];
         }
@@ -311,7 +311,7 @@ void stupidWalk() {
     int stepCounter = 35;
     bool movingLeft = true;
 
-    leg* body [6] = {&lf, &rf, &lm, &rm, &lb, &rb}; 
+    leg body [6] = {lf, rf, lm, rm, lb, rb}; 
     //walk 1-4
     int lifted[4][3] = {
         {110, 115, 145},
@@ -333,19 +333,19 @@ void stupidWalk() {
 
         angleTab(walk, 0, grounded, lifted, movingLeft);
         //walk1
-        interpolateAngle(*body, walk, stepCounter); 
+        interpolateAngle(body, walk, stepCounter); 
         
         angleTab(walk, 1, grounded, lifted, movingLeft);
         //walk2
-        interpolateAngle(*body, walk, stepCounter); 
+        interpolateAngle(body, walk, stepCounter); 
     
         angleTab(walk, 2, grounded, lifted, movingLeft);
         //walk 3
-        interpolateAngle(*body, walk, stepCounter); 
+        interpolateAngle(body, walk, stepCounter); 
 
         angleTab(walk, 3, grounded, lifted, movingLeft);
         //walk4
-        interpolateAngle(*body, walk, stepCounter);  
+        interpolateAngle(body, walk, stepCounter);  
         
         movingLeft = !movingLeft;
 
@@ -369,22 +369,25 @@ void interpolateAngle(leg body [6], int finalAngles [6][3], int stepNumber) {
     for (int i = 0; i<=stepNumber; ++i) {
 
         int angles [6][3] = {
+            //lf
             {map(i, 0, stepNumber, from[0][Coxa], finalAngles[0][Coxa]),
             map(i, 0, stepNumber, from[0][Femur], finalAngles[0][Femur]),
             map(i, 0, stepNumber, from[0][Tibia], finalAngles[0][Tibia])},
-            {map(i, 0, stepNumber, from[1][Coxa], map(finalAngles[1][Coxa], 0, 180, 180, 0)),
+            //rf
+            {map(i, 0, stepNumber, from[1][Coxa], 180 - finalAngles[1][Coxa]),
             map(i, 0, stepNumber, from[1][Femur], finalAngles[1][Femur]),
             map(i, 0, stepNumber, from[1][Tibia], finalAngles[1][Tibia])},
+            
             {map(i, 0, stepNumber, from[2][Coxa], finalAngles[2][Coxa]),
             map(i, 0, stepNumber, from[2][Femur], finalAngles[2][Femur]),
             map(i, 0, stepNumber, from[2][Tibia], finalAngles[2][Tibia])},
-            {map(i, 0, stepNumber, from[3][Coxa], map(finalAngles[3][Coxa], 0, 180, 180, 0)),
+            {map(i, 0, stepNumber, from[3][Coxa], 180 - finalAngles[3][Coxa]),
             map(i, 0, stepNumber, from[3][Femur], finalAngles[3][Femur]),
             map(i, 0, stepNumber, from[3][Tibia], finalAngles[3][Tibia])},
             {map(i, 0, stepNumber, from[4][Coxa], finalAngles[4][Coxa]),
             map(i, 0, stepNumber, from[4][Femur], finalAngles[4][Femur]),
             map(i, 0, stepNumber, from[4][Tibia], finalAngles[4][Tibia])},
-            {map(i, 0, stepNumber, from[5][Coxa], map(finalAngles[5][Coxa], 0, 180, 180, 0)),
+            {map(i, 0, stepNumber, from[5][Coxa], 180 - finalAngles[5][Coxa]),
             map(i, 0, stepNumber, from[5][Femur], finalAngles[5][Femur]),
             map(i, 0, stepNumber, from[5][Tibia], finalAngles[5][Tibia])},
         };
