@@ -313,7 +313,7 @@ void stupidWalk() {
 
     leg body [6] = {lf, rf, lm, rm, lb, rb}; 
     //walk 1-5
-    int group1[5][3] = {
+    int group1[4][3] = {
         {100, 115, 145},
         {110, 70, 145},
 
@@ -321,7 +321,7 @@ void stupidWalk() {
         {90, 70, 145}
     };
 
-    int group2[5][3] = {
+    int group2[4][3] = {
         {80, 70, 145},
         {70, 70, 145},
 
@@ -347,10 +347,6 @@ void stupidWalk() {
 
         angleTab(walk, 3, group2, group1, movingLeft);
         //walk4
-        interpolateAngle(body, walk, stepCounter);  
-        
-        angleTab(walk, 4, group2, group1, movingLeft);
-        //walk5
         interpolateAngle(body, walk, stepCounter);  
 
         movingLeft = !movingLeft;
