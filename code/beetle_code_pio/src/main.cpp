@@ -2,6 +2,7 @@
 #include <Adafruit_PWMServoDriver.h>
 
 Adafruit_PWMServoDriver multiplexer = Adafruit_PWMServoDriver(0x40);
+AsyncWebServer server(80);
 
 leg lf = leg(multiplexer, lfCOffset, lfFOffset, lfTOffset, "lf", 0, 
     servoPins[0][Coxa], servoPins[0][Femur], servoPins[0][Tibia]);
@@ -64,7 +65,31 @@ bool walkMode;
 
 void setup () {
     Serial.begin(9600);
-  
+    
+    if (WEB_SERIAL) {
+        //To check if the password and ssid are correct
+        Serial.println("Connecting to WiFi...");
+        Serial.println(WIFI_SSID);
+        Serial.println(WIFI_PASS);
+        
+        WiFi.mode(WIFI_STA);
+        WiFi.begin(WIFI_SSID, WIFI_PASS);
+        
+        if (WiFi.waitForConnectResult() != WL_CONNECTED) {
+        Serial.printf("WiFi Failed!\n");
+        return;
+        }
+        
+        // WebSerial is accessible at "<IP Address>/webserial" from your browser
+        Serial.print("IP Address: ");
+        Serial.println(WiFi.localIP());
+
+        WebSerial.begin(&server);
+        WebSerial.msgCallback(handleWifiSerialInput);
+        server.begin();
+    }
+    
+
     multiplexer.begin();
     multiplexer.setPWMFreq(60);
 
@@ -78,7 +103,9 @@ void setup () {
 }
 
 void loop() {
-    handleSerialInput();
+    if (!WEB_SERIAL) {
+        handleSerialInput();
+    }
 
     if (walkMode) {
         
@@ -99,15 +126,32 @@ void loop() {
         }
 
         unsigned long millisCalc = millis();
-        Serial.print("Time calculated:");
-        Serial.println(millisCalc - timeMillis);
+        Sprint("Time calculated:");
+        Sprintln(millisCalc - timeMillis);
+        
         while (millis() < timeMillis + periodMs) {}
-        Serial.print("Time waited:");
-        Serial.println(millis() - millisCalc);
+        
+        Sprint("Time waited:");
+        Sprintln(millis() - millisCalc);
     }
 
 }
 
+void handleWifiSerialInput(uint8_t *data, size_t len) {
+    String input = "";
+    for (size_t i = 0; i < len; i++) {
+        input += char(data[i]);
+    }
+    input.trim();
+
+    if (input.length() == 1) {
+        handleKeyCommand(input.charAt(0));
+    } else {
+        handleTextCommand(input);
+    }
+}
+
+// Depreciated serial input function, left for reference
 void handleSerialInput() {
   if (Serial.available() > 0) {
     String input = Serial.readStringUntil('\n');
@@ -120,14 +164,15 @@ void handleSerialInput() {
   }
 }
 
+
 void handleTextCommand(String input) {
     input.toLowerCase();
     
     for(uint8_t i = 0; i < 6; i++) {
         if(input == legs[i].name) {
           current = &legs[i];
-          Serial.print("Selected leg: ");
-          Serial.println(current->name);
+          Sprint("Selected leg: ");
+          Sprintln(current->name);
           return;
         }
     }
@@ -137,10 +182,10 @@ void handleTextCommand(String input) {
         int newOffset = offsetValue.toInt(); // Convert to integer
         if (newOffset > 0) { // Ensure it's a valid positive number
             offsetAngle = newOffset;
-            Serial.print("Offset angle set to: ");
-            Serial.println(offsetAngle);
+            Sprint("Offset angle set to: ");
+            Sprintln(offsetAngle);
         } else {
-            Serial.println("Invalid offset value. Please provide a positive number.");
+            Sprintln("Invalid offset value. Please provide a positive number.");
         }
     } else if (input == "gait") {
         walkMode = true;
@@ -158,7 +203,7 @@ void handleTextCommand(String input) {
     } else if(input == "curl") {
         initializeAllServos(curlAngle[Coxa], curlAngle[Femur], curlAngle[Tibia]);
     } else {
-        Serial.println("Unknown command. Type 'help' for a list of commands.");
+        Sprintln("Unknown command. Type 'help' for a list of commands.");
     }
   }
 
@@ -197,14 +242,14 @@ void handleKeyCommand(char key) {
         currAngles[current->index][Tibia]= currAngles[current->index][Tibia] -offsetAngle ;
         break;
     }
-    Serial.print(current->name);
-    Serial.print(" - Coxa:");
-    Serial.print(currAngles[current->index][Coxa]);
-    Serial.print("°, Femur:");
-    Serial.print(currAngles[current->index][Femur]);
-    Serial.print("°, Tibia:");
-    Serial.print(currAngles[current->index][Tibia]);
-    Serial.println("°");
+    Sprint(current->name);
+    Sprint(" - Coxa:");
+    Sprint(currAngles[current->index][Coxa]);
+    Sprint("°, Femur:");
+    Sprint(currAngles[current->index][Femur]);
+    Sprint("°, Tibia:");
+    Sprint(currAngles[current->index][Tibia]);
+    Sprintln("°");
 }
 
 void initializeAllServos(float angleC, float angleF, float angleT) {
@@ -274,15 +319,33 @@ void interpolateAngle (int angle, leg leg, int pin, servoIndex servo) {
 }
 
 void printHelp() {
-    Serial.println("\nServo Control System:");
-    Serial.println("Quick commands (single key):");
-    Serial.println("Q/A - Coxa +/-");
-    Serial.println("W/S - Femur +/-");
-    Serial.println("E/D - Tibia +/-");
-    Serial.println("\nAdvanced commands:");
-    Serial.println("wave - Beetlebot waves at you animation");
-    Serial.println("sit - Beetlebot sits down");
-    Serial.println("stand - Beetlebot stands up");
-    Serial.println("gait - walking gait pattern");
-    Serial.println("test - stupid tripod");
-}     
+    Sprintln("\nServo Control System:");
+    Sprintln("Quick commands (single key):");
+    Sprintln("Q/A - Coxa +/-");
+    Sprintln("W/S - Femur +/-");
+    Sprintln("E/D - Tibia +/-");
+    Sprintln("\nAdvanced commands:");
+    Sprintln("wave - Beetlebot waves at you animation");
+    Sprintln("sit - Beetlebot sits down");
+    Sprintln("stand - Beetlebot stands up");
+    Sprintln("gait - walking gait pattern");
+    Sprintln("test - stupid tripod");
+}
+
+template<typename T>
+void Sprintln(T msg) {
+    if (WEB_SERIAL) {
+        WebSerial.println(msg);
+    } else {
+        Serial.println(msg);
+    }
+}
+
+template<typename T>
+void Sprint(T msg) {
+    if (WEB_SERIAL) {
+        WebSerial.print(msg);
+    } else {
+        Serial.print(msg);
+    }
+}
