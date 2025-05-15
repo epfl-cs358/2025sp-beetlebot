@@ -53,7 +53,7 @@ int waypoints[numberPoints][2] = { { 500, 0 },
 //old code
 leg* current = &rm;
 leg legs [6] = {lf, rf, lm, rm, lb, rb};
-float currAngles [6][3] = {
+int currAngles [6][3] = {
         {90, 90, 90},
         {90, 90, 90},
         {90, 90, 90},
@@ -98,7 +98,7 @@ void setup () {
     ledcAttachPin(servoPins[0][Tibia], 0); 
     ledcAttachPin(servoPins[1][Tibia], 1); 
 
-    initializeAllServos(sitAngle[Coxa], sitAngle[Femur], sitAngle[Tibia]);
+    initializeAllServos(standAngle[Coxa], standAngle[Femur], standAngle[Tibia]);
     printHelp();
 }
 
@@ -106,7 +106,6 @@ void loop() {
     if (!WEB_SERIAL) {
         handleSerialInput();
     }
-
     if (walkMode) {
         
 
@@ -283,134 +282,136 @@ void exampleSteps() {
     bot.computeBodyMov(currPositions, newPositions, 0, 0, 0);
 }
 
-void stupidWalk() {
-    int coxaInterval = 25; //for legs that need to move towards each other, can do +- 25 from default pos
-    leg* firstGroup[3] = {&lf, &rm, &lb};
-    leg* secondGroup[3] = {&rf, &lm, &rb};
-    int movingLeft = 0;
+//helper for stupid walk
+void angleTab (int angles[6][3], int walk, int grounded [4][3], int lifted [4][3], bool moveLeft) {
+    if (!moveLeft) {
+        for (int j = 0; j < 3; ++j) {
+            angles[0][j] = grounded[walk][j];
+            angles[1][j] = lifted[walk][j];
+            angles[2][j] = grounded[walk][j];
+            angles[3][j] = lifted[walk][j];
+            angles[4][j] = grounded[walk][j];
+            angles[5][j] = lifted[walk][j];
+        }
+    } else {
+        for (int j = 0; j < 3; ++j) {
+            angles[0][j] = lifted[walk][j];
+            angles[1][j] = grounded[walk][j];
+            angles[2][j] = lifted[walk][j];
+            angles[3][j] = grounded[walk][j];
+            angles[4][j] = lifted[walk][j];
+            angles[5][j] = grounded[walk][j];
+        }
+    }
+}
 
+void stupidWalk() {
+    initializeAllServos(standAngle[Coxa], standAngle[Femur], standAngle[Tibia]);
+    int coxaInterval = 25; //for legs that need to move towards each other, can do +- 25 from default pos
+    int stepCounter = 35;
+    bool movingLeft = true;
+
+    leg* body [6] = {&lf, &rf, &lm, &rm, &lb, &rb}; 
     //walk 1-4
     int lifted[4][3] = {
-        {115, 110, 20},
-        {115, 70, 20},
-        {65, 70, 20},
-        {65, 110, 20}
+        {110, 115, 145},
+        {110, 70, 145},
+        {70, 70, 145},
+        {70, 115, 145}
     };
 
     int grounded[4][3] = {
-        {65, 70, 20},
-        {65, 110, 20},
-        {115, 110, 20},
-        {115, 70, 20}
+        {70, 70, 145},
+        {70, 115, 145},
+        {110, 115, 145},
+        {110, 70, 145}
     };
+
+    int  walk [6][3];
 
     for (int i = 0; i< 4; ++i) {
 
+        angleTab(walk, 0, grounded, lifted, movingLeft);
         //walk1
-        interpolateAngle(*firstGroup[0], *firstGroup[1], *firstGroup[2], lifted[0], 50, firstGroup[1]->index % 2);
-        interpolateAngle(*secondGroup[0], *secondGroup[1], *secondGroup[2], grounded[0], 50, secondGroup[1]->index % 2); 
+        interpolateAngle(*body, walk, stepCounter); 
         
+        angleTab(walk, 1, grounded, lifted, movingLeft);
         //walk2
-        interpolateAngle(*firstGroup[0], *firstGroup[1], *firstGroup[2], lifted[1], 50, firstGroup[1]->index % 2);
-        interpolateAngle(*secondGroup[0], *secondGroup[1], *secondGroup[2], grounded[1] , 50, secondGroup[1]->index % 2); 
-
+        interpolateAngle(*body, walk, stepCounter); 
+    
+        angleTab(walk, 2, grounded, lifted, movingLeft);
         //walk 3
-        interpolateAngle(*firstGroup[0], *firstGroup[1], *firstGroup[2], lifted[2], 50, firstGroup[1]->index % 2);
-        interpolateAngle(*secondGroup[0], *secondGroup[1], *secondGroup[2], grounded[2], 50, secondGroup[1]->index % 2); 
+        interpolateAngle(*body, walk, stepCounter); 
 
+        angleTab(walk, 3, grounded, lifted, movingLeft);
         //walk4
-        interpolateAngle(*firstGroup[0], *firstGroup[1], *firstGroup[2], lifted[3] , 50, firstGroup[1]->index % 2);
-        interpolateAngle(*secondGroup[0], *secondGroup[1], *secondGroup[2], grounded[3], 50, secondGroup[1]->index % 2); 
+        interpolateAngle(*body, walk, stepCounter);  
         
-        if (movingLeft == 0) {
-            firstGroup[0] = &rf;
-            firstGroup[1] = &lm;
-            firstGroup[2] = &rb;
-
-            secondGroup[0] = &lf;
-            secondGroup [1] = &rm;
-            secondGroup [2] = &lb;
-            movingLeft = 1;
-        } else {
-            secondGroup[0] = &rf;
-            secondGroup[1] = &lm;
-            secondGroup[2] = &rb;
-
-            firstGroup[0] = &lf;
-            firstGroup [1] = &rm;
-            firstGroup [2] = &lb;
-            movingLeft = 0;
-        }
+        movingLeft = !movingLeft;
 
     }
 }
 
-void interpolateAngle (leg front, leg middle, leg back, int finalAngles [3], int stepNumber, int movingLeftGroup) {
-    int from [3];
-    //take the side which coxa moves from 0 to 180
-    if (movingLeftGroup == 0) {
-        from[Coxa] = currAngles[front.index][Coxa];
-        from[Femur] = currAngles[front.index][Femur];
-        from[Tibia] = currAngles[front.index][Tibia];
-    } else {
-        from[Coxa] = currAngles[middle.index][Coxa];
-        from[Femur] = currAngles[middle.index][Femur];
-        from[Tibia] = currAngles[middle.index][Tibia];
-    }
+void interpolateAngle(leg body [6], int finalAngles [6][3], int stepNumber) {
+    
+    //current angles of the legs
+    int from [6][3] = 
+        {
+            {currAngles[0][Coxa], currAngles[0][Femur], currAngles[0][Tibia]},
+            {currAngles[1][Coxa], currAngles[1][Femur], currAngles[1][Tibia]},
+            {currAngles[2][Coxa], currAngles[2][Femur], currAngles[2][Tibia]},
+            {currAngles[3][Coxa], currAngles[3][Femur], currAngles[3][Tibia]},
+            {currAngles[4][Coxa], currAngles[4][Femur], currAngles[4][Tibia]},
+            {currAngles[5][Coxa], currAngles[5][Femur], currAngles[5][Tibia]},
+        };
 
-    int stepCounter = 0;
 
-    for (int i = stepCounter; i< stepNumber; ++i) {
+    for (int i = 0; i<=stepNumber; ++i) {
 
-        int coxaAngle;
-        int femurAngle;
-        int tibiaAngle;
-        if (i == stepNumber -1) {
-            coxaAngle = finalAngles[Coxa];
-            femurAngle = finalAngles [Femur];
-            tibiaAngle = finalAngles [Tibia];
-        } else {
-            coxaAngle = map(stepCounter, 0, stepNumber, from[Coxa], finalAngles[Coxa]);
-            femurAngle = map(stepCounter, 0, stepNumber, from[Femur], finalAngles[Femur]);
-            tibiaAngle = map(stepCounter, 0, stepNumber, from[Tibia], finalAngles[Tibia]);
+        int angles [6][3] = {
+            {map(i, 0, stepNumber, from[0][Coxa], finalAngles[0][Coxa]),
+            map(i, 0, stepNumber, from[0][Femur], finalAngles[0][Femur]),
+            map(i, 0, stepNumber, from[0][Tibia], finalAngles[0][Tibia])},
+            {map(i, 0, stepNumber, from[1][Coxa], map(finalAngles[1][Coxa], 0, 180, 180, 0)),
+            map(i, 0, stepNumber, from[1][Femur], finalAngles[1][Femur]),
+            map(i, 0, stepNumber, from[1][Tibia], finalAngles[1][Tibia])},
+            {map(i, 0, stepNumber, from[2][Coxa], finalAngles[2][Coxa]),
+            map(i, 0, stepNumber, from[2][Femur], finalAngles[2][Femur]),
+            map(i, 0, stepNumber, from[2][Tibia], finalAngles[2][Tibia])},
+            {map(i, 0, stepNumber, from[3][Coxa], map(finalAngles[3][Coxa], 0, 180, 180, 0)),
+            map(i, 0, stepNumber, from[3][Femur], finalAngles[3][Femur]),
+            map(i, 0, stepNumber, from[3][Tibia], finalAngles[3][Tibia])},
+            {map(i, 0, stepNumber, from[4][Coxa], finalAngles[4][Coxa]),
+            map(i, 0, stepNumber, from[4][Femur], finalAngles[4][Femur]),
+            map(i, 0, stepNumber, from[4][Tibia], finalAngles[4][Tibia])},
+            {map(i, 0, stepNumber, from[5][Coxa], map(finalAngles[5][Coxa], 0, 180, 180, 0)),
+            map(i, 0, stepNumber, from[5][Femur], finalAngles[5][Femur]),
+            map(i, 0, stepNumber, from[5][Tibia], finalAngles[5][Tibia])},
+        };
+
+        for (int j = 0; j < 6; ++j) {
+            if (i == stepNumber) {
+                body[j].setAngle(body[j].pinC, 0, finalAngles[j][Coxa]);
+                body[j].setAngle(body[j].pinF, 0, finalAngles[j][Femur]);
+                body[j].setAngle(body[j].pinT, 0, finalAngles[j][Tibia], j);
+            } else {
+                body[j].setAngle(body[j].pinC, 0, angles[j][Coxa]);
+                body[j].setAngle(body[j].pinF, 0, angles[j][Femur]);
+                body[j].setAngle(body[j].pinT, 0, angles[j][Tibia],j);
+            }
         }
-
-        int rightAngleCoxa = map(coxaAngle, 0, 180, 180, 0);
-
-        if (movingLeftGroup) {
-            middle.setAngle(middle.pinC, 0, rightAngleCoxa);
-            front.setAngle(front.pinC, 0, coxaAngle);
-            back.setAngle(back.pinC, 0, coxaAngle);
-        } else {
-            front.setAngle(front.pinC, 0, rightAngleCoxa);
-            back.setAngle(back.pinC, 0, rightAngleCoxa);
-            middle.setAngle(middle.pinC, 0, coxaAngle);
-        }
-
-        front.setAngle(front.pinF, 0, femurAngle);
-        middle.setAngle(middle.pinF, 0, femurAngle);
-        back.setAngle(back.pinF, 0, femurAngle);
-
-        front.setAngle(front.pinT, 0, tibiaAngle);
-        middle.setAngle(middle.pinT, 0, tibiaAngle);
-        back.setAngle(back.pinT, 0, tibiaAngle);
-        stepCounter++;
-
         delay(SWEEP_DELAY);
     
     }
 
-    if (movingLeftGroup == 0) {
-        currAngles[front.index][Coxa] = finalAngles[Coxa];
-        currAngles[back.index][Coxa] = finalAngles[Coxa];
-        currAngles[middle.index][Coxa] = map(finalAngles[Coxa], 0, 180, 180, 0);
-    } else {
-        currAngles[front.index][Coxa] = map(finalAngles[Coxa], 0, 180, 180, 0);
-        currAngles[back.index][Coxa] = map(finalAngles[Coxa], 0, 180, 180, 0);
-        currAngles[middle.index][Coxa] = finalAngles[Coxa];
+    for (int i = 0; i<6; ++i) {
+        currAngles[i][Coxa] = finalAngles[i][Coxa];
+        currAngles[i][Femur] = finalAngles[i][Femur];
+        currAngles[i][Tibia] = finalAngles[i][Tibia];
     }
 
 }
+
 
 void printHelp() {
     Sprintln("\nServo Control System:");

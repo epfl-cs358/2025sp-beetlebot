@@ -14,7 +14,7 @@ void initializeAllServos(float angleC, float angleF, float angleT);
 void exampleSteps();
 void printHelp();
 void stupidWalk();
-void interpolateAngle(int angle, leg leg, int pin, servoIndex servo);
+void interpolateAngle(leg body [6], int finalAngles [6][3], int stepNumber);
 
 template<typename T>
 void Sprintln(T msg);
