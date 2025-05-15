@@ -283,25 +283,14 @@ void exampleSteps() {
 }
 
 //helper for stupid walk
-void angleTab (int angles[6][3], int walk, int group2 [4][3], int group1 [4][3], bool moveLeft) {
-    if (!moveLeft) {
-        for (int j = 0; j < 3; ++j) {
-            angles[0][j] = group2[walk][j];
-            angles[1][j] = group1[walk][j];
-            angles[2][j] = group1[walk][j];
-            angles[3][j] = group2[walk][j];
-            angles[4][j] = group2[walk][j];
-            angles[5][j] = group1[walk][j];
-        }
-    } else {
-        for (int j = 0; j < 3; ++j) {
-            angles[0][j] = group1[walk][j];
-            angles[1][j] = group2[walk][j];
-            angles[2][j] = group2[walk][j];
-            angles[3][j] = group1[walk][j];
-            angles[4][j] = group1[walk][j];
-            angles[5][j] = group2[walk][j];
-        }
+void angleTab (int angles[6][3], int walk, int group2 [4][3], int group1 [4][3]) {
+    for (int j =0; j<3; ++j) {
+        angles[0][j] = group2[walk][j];
+        angles[1][j] = group1[walk][j];
+        angles[2][j] = group1[walk][j];
+        angles[3][j] = group2[walk][j];
+        angles[4][j] = group2[walk][j];
+        angles[5][j] = group1[walk][j];
     }
 }
 
@@ -309,7 +298,6 @@ void stupidWalk() {
     initializeAllServos(standAngle[Coxa], standAngle[Femur], standAngle[Tibia]);
     int coxaInterval = 25; //for legs that need to move towards each other, can do +- 25 from default pos
     int stepCounter = 35;
-    bool movingLeft = true;
 
     leg body [6] = {lf, rf, lm, rm, lb, rb}; 
     //walk 1-5
@@ -333,23 +321,22 @@ void stupidWalk() {
 
     for (int i = 0; i< 4; ++i) {
 
-        angleTab(walk, 0, group2, group1, movingLeft);
+        angleTab(walk, 0, group2, group1);
         //walk1
         interpolateAngle(body, walk, stepCounter); 
         
-        angleTab(walk, 1, group2, group1, movingLeft);
+        angleTab(walk, 1, group2, group1);
         //walk2
         interpolateAngle(body, walk, stepCounter); 
     
-        angleTab(walk, 2, group2, group1, movingLeft);
+        angleTab(walk, 2, group2, group1);
         //walk 3
         interpolateAngle(body, walk, stepCounter); 
 
-        angleTab(walk, 3, group2, group1, movingLeft);
+        angleTab(walk, 3, group2, group1);
         //walk4
         interpolateAngle(body, walk, stepCounter);  
 
-        movingLeft = !movingLeft;
 
     }
 }
