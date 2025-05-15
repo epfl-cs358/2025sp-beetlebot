@@ -178,7 +178,7 @@ void handleKeyCommand(char key) {
         break;
       case 's': 
         current->setAngle(current->pinF, -offsetAngle, currAngles[current->index][Femur]); 
-        currAngles[current->index][Coxa]= currAngles[current->index][Coxa] - offsetAngle;
+        currAngles[current->index][Femur]= currAngles[current->index][Femur] - offsetAngle;
         break;
       case 'e': 
         if (current->pinT>=0 && current->pinT<=15) {
@@ -239,38 +239,132 @@ void exampleSteps() {
 }
 
 void stupidWalk() {
-    
-    
+    int coxaInterval = 25; //for legs that need to move towards each other, can do +- 25 from default pos
+    leg* firstGroup[3] = {&lf, &rm, &lb};
+    leg* secondGroup[3] = {&rf, &lm, &rb};
+    int movingLeft = 0;
+
+    //walk 1-4
+    int lifted[4][3] = {
+        {115, 110, 20},
+        {115, 70, 20},
+        {65, 70, 20},
+        {65, 110, 20}
+    };
+
+    int grounded[4][3] = {
+        {65, 70, 20},
+        {65, 110, 20},
+        {115, 110, 20},
+        {115, 70, 20}
+    };
+
+    for (int i = 0; i< 4; ++i) {
+
+        //walk1
+        interpolateAngle(*firstGroup[0], *firstGroup[1], *firstGroup[2], lifted[0], 50, firstGroup[1]->index % 2);
+        interpolateAngle(*secondGroup[0], *secondGroup[1], *secondGroup[2], grounded[0], 50, secondGroup[1]->index % 2); 
+        
+        //walk2
+        interpolateAngle(*firstGroup[0], *firstGroup[1], *firstGroup[2], lifted[1], 50, firstGroup[1]->index % 2);
+        interpolateAngle(*secondGroup[0], *secondGroup[1], *secondGroup[2], grounded[1] , 50, secondGroup[1]->index % 2); 
+
+        //walk 3
+        interpolateAngle(*firstGroup[0], *firstGroup[1], *firstGroup[2], lifted[2], 50, firstGroup[1]->index % 2);
+        interpolateAngle(*secondGroup[0], *secondGroup[1], *secondGroup[2], grounded[2], 50, secondGroup[1]->index % 2); 
+
+        //walk4
+        interpolateAngle(*firstGroup[0], *firstGroup[1], *firstGroup[2], lifted[3] , 50, firstGroup[1]->index % 2);
+        interpolateAngle(*secondGroup[0], *secondGroup[1], *secondGroup[2], grounded[3], 50, secondGroup[1]->index % 2); 
+        
+        if (movingLeft == 0) {
+            firstGroup[0] = &rf;
+            firstGroup[1] = &lm;
+            firstGroup[2] = &rb;
+
+            secondGroup[0] = &lf;
+            secondGroup [1] = &rm;
+            secondGroup [2] = &lb;
+            movingLeft = 1;
+        } else {
+            secondGroup[0] = &rf;
+            secondGroup[1] = &lm;
+            secondGroup[2] = &rb;
+
+            firstGroup[0] = &lf;
+            firstGroup [1] = &rm;
+            firstGroup [2] = &lb;
+            movingLeft = 0;
+        }
+
+    }
 }
 
-void interpolateAngle (int angle, leg leg, int pin, servoIndex servo) {
-    int from = currAngles[leg.index][servo];
-    if (from > angle) {
-        if (pin<16) {
-            for (int i = from-1; i>=angle; i--){
-                leg.setAngle(pin, 0, i);
-                delay(20);
-            }
-        } else {
-            for (int i = from-1; i>=angle; i--){
-                leg.setAngle(pin, 0, i, leg.index);
-                delay(20);
-            }
-        }
+void interpolateAngle (leg front, leg middle, leg back, int finalAngles [3], int stepNumber, int movingLeftGroup) {
+    int from [3];
+    //take the side which coxa moves from 0 to 180
+    if (movingLeftGroup == 0) {
+        from[Coxa] = currAngles[front.index][Coxa];
+        from[Femur] = currAngles[front.index][Femur];
+        from[Tibia] = currAngles[front.index][Tibia];
     } else {
-        if (pin<16) {
-            for (int i = from+1; i<=angle; i++){
-                leg.setAngle(pin, 0, i);
-                delay(20);
-            }
-        } else {
-            for (int i = from+1; i<=angle; i++){
-                leg.setAngle(pin, 0, i, leg.index);
-                delay(20);
-            }
-        }
+        from[Coxa] = currAngles[middle.index][Coxa];
+        from[Femur] = currAngles[middle.index][Femur];
+        from[Tibia] = currAngles[middle.index][Tibia];
     }
-    currAngles[leg.index][servo] = angle;
+
+    int stepCounter = 0;
+
+    for (int i = stepCounter; i< stepNumber; ++i) {
+
+        int coxaAngle;
+        int femurAngle;
+        int tibiaAngle;
+        if (i == stepNumber -1) {
+            coxaAngle = finalAngles[Coxa];
+            femurAngle = finalAngles [Femur];
+            tibiaAngle = finalAngles [Tibia];
+        } else {
+            coxaAngle = map(stepCounter, 0, stepNumber, from[Coxa], finalAngles[Coxa]);
+            femurAngle = map(stepCounter, 0, stepNumber, from[Femur], finalAngles[Femur]);
+            tibiaAngle = map(stepCounter, 0, stepNumber, from[Tibia], finalAngles[Tibia]);
+        }
+
+        int rightAngleCoxa = map(coxaAngle, 0, 180, 180, 0);
+
+        if (movingLeftGroup) {
+            middle.setAngle(middle.pinC, 0, rightAngleCoxa);
+            front.setAngle(front.pinC, 0, coxaAngle);
+            back.setAngle(back.pinC, 0, coxaAngle);
+        } else {
+            front.setAngle(front.pinC, 0, rightAngleCoxa);
+            back.setAngle(back.pinC, 0, rightAngleCoxa);
+            middle.setAngle(middle.pinC, 0, coxaAngle);
+        }
+
+        front.setAngle(front.pinF, 0, femurAngle);
+        middle.setAngle(middle.pinF, 0, femurAngle);
+        back.setAngle(back.pinF, 0, femurAngle);
+
+        front.setAngle(front.pinT, 0, tibiaAngle);
+        middle.setAngle(middle.pinT, 0, tibiaAngle);
+        back.setAngle(back.pinT, 0, tibiaAngle);
+        stepCounter++;
+
+        delay(SWEEP_DELAY);
+    
+    }
+
+    if (movingLeftGroup == 0) {
+        currAngles[front.index][Coxa] = finalAngles[Coxa];
+        currAngles[back.index][Coxa] = finalAngles[Coxa];
+        currAngles[middle.index][Coxa] = map(finalAngles[Coxa], 0, 180, 180, 0);
+    } else {
+        currAngles[front.index][Coxa] = map(finalAngles[Coxa], 0, 180, 180, 0);
+        currAngles[back.index][Coxa] = map(finalAngles[Coxa], 0, 180, 180, 0);
+        currAngles[middle.index][Coxa] = finalAngles[Coxa];
+    }
+
 }
 
 void printHelp() {
