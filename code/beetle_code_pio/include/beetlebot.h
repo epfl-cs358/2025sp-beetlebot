@@ -113,12 +113,12 @@ class beetlebot {
 
         //array to save the end points of a step
         float finalPositions [6][3] = {
-            {homePositions[0][0], homePositions[0][1],homePositions[0][2]}, 
-            {homePositions[1][0], homePositions[1][1],homePositions[1][2]}, 
-            {homePositions[2][0], homePositions[2][1],homePositions[2][2]}, 
-            {homePositions[3][0], homePositions[3][1],homePositions[3][2]}, 
-            {homePositions[4][0], homePositions[4][1],homePositions[4][2]}, 
-            {homePositions[5][0], homePositions[5][1],homePositions[5][2]}, 
+            {homePositions[0], homePositions[1],homePositions[2]}, 
+            {homePositions[0], homePositions[1],homePositions[2]}, 
+            {homePositions[0], homePositions[1],homePositions[2]}, 
+            {homePositions[0], homePositions[1],homePositions[2]}, 
+            {homePositions[0], homePositions[1],homePositions[2]}, 
+            {homePositions[0], homePositions[1],homePositions[2]}, 
         };
 
         

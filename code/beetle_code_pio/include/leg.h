@@ -25,13 +25,9 @@ class leg {
         float getY();
         float getZ();
 
-        //in mm
-        //format for tabs is always coxa, femur, tibia
-        static constexpr float length [3] = {38.4, 43.03,70};
-
-        int coxaLimits[2];
-        int femurLimits[2];
-        int tibiaLimits[2];
+        int coxaLimits[2] = {65, 110};
+        //coxa, femur, tibia in mm
+        const float length[3] = {36.3, 29.9, 56.7};        
 
         leg(Adafruit_PWMServoDriver &multiplexer, int offsetCoxa, int offsetFemur, int offsetTibia, String name, int index, 
             int pinC, int pinF, int pinT) 

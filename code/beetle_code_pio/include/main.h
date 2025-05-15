@@ -9,3 +9,5 @@ void handleKeyCommand(char key);
 void initializeAllServos(float angleC, float angleF, float angleT);
 void exampleSteps();
 void printHelp();
+void stupidWalk();
+void interpolateAngle(int angle, leg leg, int pin, servoIndex servo);
