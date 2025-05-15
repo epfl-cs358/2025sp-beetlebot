@@ -283,24 +283,24 @@ void exampleSteps() {
 }
 
 //helper for stupid walk
-void angleTab (int angles[6][3], int walk, int grounded [4][3], int lifted [4][3], bool moveLeft) {
+void angleTab (int angles[6][3], int walk, int group2 [4][3], int group1 [4][3], bool moveLeft) {
     if (!moveLeft) {
         for (int j = 0; j < 3; ++j) {
-            angles[0][j] = grounded[walk][j];
-            angles[1][j] = lifted[walk][j];
-            angles[2][j] = lifted[walk][j];
-            angles[3][j] = grounded[walk][j];
-            angles[4][j] = grounded[walk][j];
-            angles[5][j] = lifted[walk][j];
+            angles[0][j] = group2[walk][j];
+            angles[1][j] = group1[walk][j];
+            angles[2][j] = group1[walk][j];
+            angles[3][j] = group2[walk][j];
+            angles[4][j] = group2[walk][j];
+            angles[5][j] = group1[walk][j];
         }
     } else {
         for (int j = 0; j < 3; ++j) {
-            angles[0][j] = lifted[walk][j];
-            angles[1][j] = grounded[walk][j];
-            angles[2][j] = grounded[walk][j];
-            angles[3][j] = lifted[walk][j];
-            angles[4][j] = lifted[walk][j];
-            angles[5][j] = grounded[walk][j];
+            angles[0][j] = group1[walk][j];
+            angles[1][j] = group2[walk][j];
+            angles[2][j] = group2[walk][j];
+            angles[3][j] = group1[walk][j];
+            angles[4][j] = group1[walk][j];
+            angles[5][j] = group2[walk][j];
         }
     }
 }
@@ -312,41 +312,47 @@ void stupidWalk() {
     bool movingLeft = true;
 
     leg body [6] = {lf, rf, lm, rm, lb, rb}; 
-    //walk 1-4
-    int lifted[4][3] = {
-        {110, 115, 145},
+    //walk 1-5
+    int group1[5][3] = {
+        {100, 115, 145},
         {110, 70, 145},
-        {70, 70, 145},
-        {70, 115, 145}
+
+        {100, 70, 145},
+        {90, 70, 145}
     };
 
-    int grounded[4][3] = {
+    int group2[5][3] = {
+        {80, 70, 145},
         {70, 70, 145},
-        {70, 115, 145},
-        {110, 115, 145},
-        {110, 70, 145}
+
+        {80, 115, 145},
+        {90, 70, 145}
     };
 
     int  walk [6][3];
 
     for (int i = 0; i< 4; ++i) {
 
-        angleTab(walk, 0, grounded, lifted, movingLeft);
+        angleTab(walk, 0, group2, group1, movingLeft);
         //walk1
         interpolateAngle(body, walk, stepCounter); 
         
-        angleTab(walk, 1, grounded, lifted, movingLeft);
+        angleTab(walk, 1, group2, group1, movingLeft);
         //walk2
         interpolateAngle(body, walk, stepCounter); 
     
-        angleTab(walk, 2, grounded, lifted, movingLeft);
+        angleTab(walk, 2, group2, group1, movingLeft);
         //walk 3
         interpolateAngle(body, walk, stepCounter); 
 
-        angleTab(walk, 3, grounded, lifted, movingLeft);
+        angleTab(walk, 3, group2, group1, movingLeft);
         //walk4
         interpolateAngle(body, walk, stepCounter);  
         
+        angleTab(walk, 4, group2, group1, movingLeft);
+        //walk5
+        interpolateAngle(body, walk, stepCounter);  
+
         movingLeft = !movingLeft;
 
     }

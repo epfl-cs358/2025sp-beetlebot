@@ -11,10 +11,6 @@ void leg::setAngle(int servoPin, int offset, float angle, int servoOnEsp) {
         uint32_t duty = (uint32_t)(pulse * 65536.0 / 20000.0);
         ledcWrite(servoOnEsp, duty);
     }; 
-    Serial.print("Servo: ");
-    Serial.print(servoPin);
-    Serial.print("angle: ");
-    Serial.println(angle+offset); 
 }
 
 
@@ -36,14 +32,8 @@ bool leg::moveTo (float x, float y, float z) {
     coxaRotDeg = mapF(coxaRotDeg, 0.0, 180.0, 180.0, 0.0);
 
     if(!isReachable(H,z)) {
-        Serial.print("Unreachable z:");
-        Serial.print(z);
-        Serial.print(" H: ");
-        Serial.println(H);
         return false;
     } else if (!((coxaRotDeg + offsetCoxa) > coxaLimits[0] && (coxaRotDeg + offsetCoxa) < coxaLimits[1])) {
-        Serial.print("Unreachable coxaAngle:");
-        Serial.println(coxaRotDeg);
         return false;
     }
 
