@@ -4,7 +4,7 @@
 #include <WebSerial.h>
 
 // WiFi credentials
-#define WIFI_SSID "YOUR_SSID"
+#define WIFI_SSID "SPOT-iot"
 #define WIFI_PASS "YOUR_PASSWORD"
 
 

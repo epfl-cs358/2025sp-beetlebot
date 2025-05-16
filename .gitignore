@@ -2,3 +2,4 @@ code/beetle_code_pio/include/wifi_credentials.h
 code/beetle_code_pio/.pio/*
 code/beetle_code_pio/.vscode/*
 
+/code/.vscode
