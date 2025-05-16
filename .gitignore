@@ -3,3 +3,4 @@ code/beetle_code_pio/.pio/*
 code/beetle_code_pio/.vscode/*
 
 /code/.vscode
+/code/beetle_code_pio/creds
