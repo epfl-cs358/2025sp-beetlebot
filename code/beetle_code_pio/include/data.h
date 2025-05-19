@@ -32,14 +32,14 @@ const float homePositions [3] =
     {0.0, 79.36, 41.2};
 
 //origin of the coordinates system in beetlebot is the center of the robot, and
-//the origin of the leg's system is the coxa joint, hence this array maps the coordinates to the global (robot center) system
+// (x dist from global coordinate system to local coordinate frame, y dist from global coordinate system to local coordinate frame, angle of rotation)
 const float legCoords[6][3] = { 
-    { 45.748,  -74.326, 5* MYPI / 6 },   //lf
-    { 45.748, 74.326,  MYPI / 6 },   //rf
+    { 45.748,  -74.326, 3* MYPI / 4 },   //lf
+    { 45.748, 74.326,  MYPI / 4 },   //rf
     {     -20.168,  -82.171, MYPI }, //lm
     {     -20.168, 82.171,        0},   
-    { -74.254,  -45.768,  7*MYPI / 6 },  //lb 
-    { -74.254, 45.768, - MYPI / 6 } }; //rb
+    { -74.254,  -45.768,  5*MYPI / 4 },  //lb 
+    { -74.254, 45.768, 7 * MYPI / 4 } }; //rb //TODO : check if this is correct or if it needs to be negative
 
 
 const int lfCOffset = 0;
