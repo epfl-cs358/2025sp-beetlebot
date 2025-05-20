@@ -18,33 +18,118 @@ void movements::initializeAllServos(float angleC, float angleF, float angleT) {
     delay(SWEEP_DELAY); 
 }
 
-//helper for forward walk - tripod gait
-void movements::angleTab (int angles[6][3], int walk, int group2 [4][3], int group1 [4][3]) {
+void movements::sitUp () {
+    initializeAllServos(sitAngle[Coxa], sitAngle[Femur], sitAngle[Tibia]);
+
+    
+}
+
+//helper for a tripod gait
+void movements::angleTab2 (int angles[6][3], int walk, int group2 [4][3], int group1 [4][3]) {
     for (int j =0; j<3; ++j) {
         if (j == 0) {
-            angles[0][j] = group1[walk][j];
-            angles[1][j] = 180 - group2[walk][j];
-            angles[2][j] = group2[walk][j];
-            angles[3][j] = 180 - group1[walk][j];
-            angles[4][j] = group1[walk][j];
-            angles[5][j] = 180 - group2[walk][j];
+            angles[0][j] = group1[walk][j]; // lf
+            angles[1][j] = 180 - group2[walk][j]; // rf
+            angles[2][j] = group2[walk][j]; // lm
+            angles[3][j] = 180 - group1[walk][j]; // rm
+            angles[4][j] = group1[walk][j]; //lb
+            angles[5][j] = 180 - group2[walk][j]; //rb
         } else {
-            angles[0][j] = group1[walk][j];
-            angles[1][j] = group2[walk][j];
-            angles[2][j] = group2[walk][j];
-            angles[3][j] = group1[walk][j];
-            angles[4][j] = group1[walk][j];
-            angles[5][j] = group2[walk][j];
+            angles[0][j] = group1[walk][j]; // lf
+            angles[1][j] = group2[walk][j]; // rf
+            angles[2][j] = group2[walk][j]; // lm
+            angles[3][j] = group1[walk][j]; // rm
+            angles[4][j] = group1[walk][j]; // lb
+            angles[5][j] = group2[walk][j]; // rb
         }
     }
 }
 
+//middle legs have less range of coxa movements as front and back, so needs to rotate less
+void movements::angleTab4(int angles[6][3], int walk, int group1 [4][3], int group2[4][3], 
+            int middleGroup1 [4][3], int middleGroup2 [4][3]) {
+        for (int j =0; j<3; ++j) {
+            if (j == 0) {
+                angles[0][j] = group1[walk][j]; // lf
+                angles[1][j] = 180 - group2[walk][j]; // rf
+                angles[2][j] = middleGroup2[walk][j]; // lm
+                angles[3][j] = 180 - middleGroup1[walk][j]; // rm
+                angles[4][j] = group1[walk][j]; //lb
+                angles[5][j] = 180 - group2[walk][j]; //rb
+            } else {
+                angles[0][j] = group1[walk][j]; // lf
+                angles[1][j] = group2[walk][j]; // rf
+                angles[2][j] = middleGroup2[walk][j]; // lm
+                angles[3][j] = middleGroup1[walk][j]; // rm
+                angles[4][j] = group1[walk][j]; // lb
+                angles[5][j] = group2[walk][j]; // rb
+            }
+        }  
+    }
+
+void movements::rotation(int direction){
+    initializeAllServos(standAngle[Coxa], standAngle[Femur], standAngle[Tibia]);
+    int coxaWideOffset = 25;
+    int coxaNarrowOffset = 10;
+
+    int way = 1; //clockwise
+    if (!direction) way = -1; //counterclockwise
+    
+    int group1[4][3] = { 
+        {90 + way*(coxaWideOffset/2), 115, 145},  
+        {90 + way*coxaWideOffset, 70, 145},
+
+        {90 - way*(coxaWideOffset/4), 70, 145},
+        {90 - way*(coxaWideOffset/2), 70, 145}
+    };
+    int group2[4][3] = { 
+        {90 - way*(coxaWideOffset/4), 70, 145},
+        {90 - way*(coxaWideOffset/2), 70, 145},
+
+        {90 + way*(coxaWideOffset/2), 115, 145},
+        {90 + way*coxaWideOffset, 70, 145}
+    };
+    int middleGroup1[4][3] = {
+        {90 + way*(coxaNarrowOffset/2), 115, 145},
+        {90 + way*coxaNarrowOffset, 70, 145},
+
+        {90 - way*(coxaNarrowOffset/2), 70, 145}, 
+        {90 - way*coxaNarrowOffset, 70, 145}
+    };
+    int middleGroup2[4][3] = {
+        {90 - way*(coxaNarrowOffset/2), 70, 145},
+        {90 - way*coxaNarrowOffset, 70, 145}, 
+
+        {90 + way*(coxaNarrowOffset/2), 115, 145},
+        {90 + way*(coxaNarrowOffset), 70, 145}
+    };
+
+    int walk [6][3];
+
+    for (int i = 0; i<4; ++i) {
+        rotateAngleTab(walk, 0, group1, group2, middleGroup1, middleGroup2);
+        //walk1
+        interpolateAngle(legs, walk, stepCounter); 
+        
+        rotateAngleTab(walk, 1, group1, group2, middleGroup1, middleGroup2);
+        //walk2
+        interpolateAngle(legs, walk, stepCounter); 
+    
+        rotateAngleTab(walk, 2, group1, group2, middleGroup1, middleGroup2);
+
+        //walk 3
+        interpolateAngle(legs, walk, stepCounter); 
+
+        rotateAngleTab(walk, 3, group1, group2, middleGroup1, middleGroup2);
+        //walk4
+        interpolateAngle(legs, walk, stepCounter);  
+    }
+    initializeAllServos(standAngle[Coxa], standAngle[Femur], standAngle[Tibia]);
+}
+
 void movements::forward() {
     initializeAllServos(standAngle[Coxa], standAngle[Femur], standAngle[Tibia]);
-    int coxaInterval = 25; //for legs that need to move towards each other, can do +- 25 from default pos
-    int stepCounter = 35;
 
-    leg body [6] = {lf, rf, lm, rm, lb, rb}; 
     //walk 1-5
     int group1[4][3] = {
         {100, 115, 145},
@@ -66,26 +151,51 @@ void movements::forward() {
 
     for (int i = 0; i< 4; ++i) {
 
-        angleTab(walk, 0, group2, group1);
+        angleTab2(walk, 0, group2, group1);
         //walk1
-        interpolateAngle(body, walk, stepCounter); 
+        interpolateAngle(legs, walk, stepCounter); 
         
-        angleTab(walk, 1, group2, group1);
+        angleTab2(walk, 1, group2, group1);
         //walk2
-        interpolateAngle(body, walk, stepCounter); 
+        interpolateAngle(legs, walk, stepCounter); 
 
         delay(SWEEP_DELAY);
     
-        angleTab(walk, 2, group2, group1);
+        angleTab2(walk, 2, group2, group1);
         //walk 3
-        interpolateAngle(body, walk, stepCounter); 
+        interpolateAngle(legs, walk, stepCounter); 
 
-        angleTab(walk, 3, group2, group1);
+        angleTab2(walk, 3, group2, group1);
         //walk4
-        interpolateAngle(body, walk, stepCounter);  
+        interpolateAngle(legs, walk, stepCounter);  
 
 
     }
+}
+
+void movements::sideways(int direction){
+    // direction = 1 for left, 0 for right
+    initializeAllServos(standAngle[Coxa], standAngle[Femur], standAngle[Tibia]);
+    if (direction == 1) { //left
+
+    } else { //right
+        int groupA[4][3] = { // lf and lb
+            
+        };
+
+        int groupB[4][3] = { // rf and rb
+            
+        };
+        int groupC[4][3] = { // lm
+            
+        };
+        int groupD[4][3] = { // rm
+            
+        };
+        
+    }
+
+
 }
 
 void movements::interpolateAngle(leg body [6], int finalAngles [6][3], int stepNumber) {

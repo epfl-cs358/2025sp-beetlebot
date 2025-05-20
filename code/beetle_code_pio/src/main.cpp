@@ -20,7 +20,7 @@ leg rb = leg(multiplexer, rbCOffset, rbFOffset, rbTOffset, "rb", 5,
 //Default for manual control of joints
 unsigned int offsetAngle = 5;
 
-movements motion = movements(lf, rf, lm, rm, lb,rb, multiplexer);
+movements motion = movements(lf, rf, lm, rm, lb,rb, multiplexer, 20);
 leg *current = motion.current;
 
 void setup () {
@@ -125,10 +125,10 @@ void handleTextCommand(String input) {
         printHelp();
     } else if(input == "stand") {
         motion.initializeAllServos(standAngle[Coxa], standAngle[Femur], standAngle[Tibia]);
-    } else if(input == "sit") {
-        motion.initializeAllServos(sitAngle[Coxa], sitAngle[Femur], sitAngle[Tibia]);
-    } else if(input == "curl") {
-        motion.initializeAllServos(curlAngle[Coxa], curlAngle[Femur], curlAngle[Tibia]);
+    } else if(input == "rotate cw") {
+        motion.rotation(1);
+    } else if(input == "rotate ccw") {
+        motion.rotation(0);
     } else {
         Sprintln("Unknown command. Type 'help' for a list of commands.");
     }
@@ -187,10 +187,11 @@ void printHelp() {
     Sprintln("W/S - Femur +/-");
     Sprintln("E/D - Tibia +/-");
     Sprintln("\nAdvanced commands:");
-    Sprintln("wave - Beetlebot waves at you animation");
-    Sprintln("sit - Beetlebot sits down");
     Sprintln("stand - Beetlebot stands up");
     Sprintln("forward - tripod");
+    Sprintln("rot cw - clockwise tripod gait rotation");
+    Sprintln("rot ccw - counterclockwise tripod gait rotation");
+
 }
 
 template<typename T>
