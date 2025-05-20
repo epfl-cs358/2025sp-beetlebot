@@ -8,10 +8,8 @@
     Defines all the necessary constants, measurements
 
 */
-#define MYPI 3.14159265
 
 #define SWEEP_DELAY 20
-#define NO_INTERSECTION -1000
 
 enum legIndex {
     LF = 0, RF = 1, LM = 2, RM = 3, LB = 4, RB = 5
@@ -27,19 +25,6 @@ const int servoPins [6][3] = {
     {10, 11, 12}, {3, 4, 5},
     {13, 14, 15}, {2, 1, 0}
 };
-
-const float homePositions [3] = 
-    {0.0, 79.36, 41.2};
-
-//origin of the coordinates system in beetlebot is the center of the robot, and
-// (x dist from global coordinate system to local coordinate frame, y dist from global coordinate system to local coordinate frame, angle of rotation)
-const float legCoords[6][3] = { 
-    { 45.748,  -74.326, 3* MYPI / 4 },   //lf
-    { 45.748, 74.326,  MYPI / 4 },   //rf
-    {     -20.168,  -82.171, MYPI }, //lm
-    {     -20.168, 82.171,        0},   
-    { -74.254,  -45.768,  5*MYPI / 4 },  //lb 
-    { -74.254, 45.768, 7 * MYPI / 4 } }; //rb //TODO : check if this is correct or if it needs to be negative
 
 
 const int lfCOffset = 0;
