@@ -107,20 +107,20 @@ void movements::rotation(int direction){
     int walk [6][3];
 
     for (int i = 0; i<4; ++i) {
-        rotateAngleTab(walk, 0, group1, group2, middleGroup1, middleGroup2);
+        angleTab4(walk, 0, group1, group2, middleGroup1, middleGroup2);
         //walk1
         interpolateAngle(legs, walk, stepCounter); 
         
-        rotateAngleTab(walk, 1, group1, group2, middleGroup1, middleGroup2);
+        angleTab4(walk, 1, group1, group2, middleGroup1, middleGroup2);
         //walk2
         interpolateAngle(legs, walk, stepCounter); 
     
-        rotateAngleTab(walk, 2, group1, group2, middleGroup1, middleGroup2);
+        angleTab4(walk, 2, group1, group2, middleGroup1, middleGroup2);
 
         //walk 3
         interpolateAngle(legs, walk, stepCounter); 
 
-        rotateAngleTab(walk, 3, group1, group2, middleGroup1, middleGroup2);
+        angleTab4(walk, 3, group1, group2, middleGroup1, middleGroup2);
         //walk4
         interpolateAngle(legs, walk, stepCounter);  
     }
