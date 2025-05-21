@@ -101,8 +101,8 @@ void handleTextCommand(String input) {
     input.toLowerCase();
     
     for(uint8_t i = 0; i < 6; i++) {
-        if(input == motion.legs[i].name) {
-          current = &motion.legs[i];
+        if(input == motion.legs[i]->name) {
+          current = motion.legs[i];
           Sprint("Selected leg: ");
           Sprintln(current->name);
           return;
@@ -125,9 +125,9 @@ void handleTextCommand(String input) {
         printHelp();
     } else if(input == "stand") {
         motion.initializeAllServos(standAngle[Coxa], standAngle[Femur], standAngle[Tibia]);
-    } else if(input == "rotate cw") {
+    } else if(input == "rot cw") {
         motion.rotation(1);
-    } else if(input == "rotate ccw") {
+    } else if(input == "rot ccw") {
         motion.rotation(0);
     } else {
         Sprintln("Unknown command. Type 'help' for a list of commands.");
