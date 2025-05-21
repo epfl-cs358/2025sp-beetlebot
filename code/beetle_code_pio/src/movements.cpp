@@ -71,16 +71,17 @@ void movements::rotation(int direction){
     initializeAllServos(standAngle[Coxa], standAngle[Femur], standAngle[Tibia]);
     int coxaWideOffset = 25;
     int coxaNarrowOffset = 10;
+    int cycleNumber = 5;
 
     int way = 1; //clockwise
     if (!direction) way = -1; //counterclockwise
     
-    int group1[4][3] = { 
+    int group1[6][3] = { 
         {90 + way*(coxaWideOffset/2), 115, 145},  
         {90 + way*coxaWideOffset, 70, 145},
 
         {90 - way*(coxaWideOffset/4), 70, 145},
-        {90 - way*(coxaWideOffset/2), 70, 145}
+        {90 - way*(coxaWideOffset/2), 70, 145},
     };
     int group2[4][3] = { 
         {90 - way*(coxaWideOffset/4), 70, 145},
@@ -104,37 +105,65 @@ void movements::rotation(int direction){
         {90 + way*(coxaNarrowOffset), 70, 145}
     };
 
-    int walk [6][3];
+    int rotate [6][3];
 
-    for (int i = 0; i<4; ++i) {
-        angleTab4(walk, 0, group1, group2, middleGroup1, middleGroup2);
-        //walk1
-        interpolateAngle(legs, walk, stepCounter); 
+    for (int i = 0; i<cycleNumber; ++i) {
+        if (i == cycleNumber - 1) { //sets the robot back straight, three by three (legs) 
+            int stand1 [6][3] = {
+                {90, 115, 145},
+                {group2[3][0], 70, 145}, //doesn't move
+                {middleGroup2[3][0], 70, 145},
+                {90, 115, 145},
+                {90, 115, 145},
+                {group2[3][0], 70, 145}
+            };
+            interpolateAngle(legs, stand1, stepCounter);
+            int stand2 [6][3] = {
+                {90, 70, 145},
+                {group2[3][0], 70, 145},
+                {middleGroup2[3][0], 70, 145},
+                {90, 70, 145},
+                {90, 70, 145},
+                {group2[3][0], 70, 145}
+            };
+            interpolateAngle(legs, stand2, stepCounter);
+            int stand3 [6][3] = {
+                {90, 70, 145},
+                {90, 115, 145},
+                {90, 115, 145},
+                {90, 70, 145},
+                {90, 70, 145},
+                {90, 115, 145}
+            };
+            interpolateAngle(legs, stand3, stepCounter);
+            int stand4 [6][3] = {
+                {90, 70, 145},
+                {90, 70, 145},
+                {90, 70, 145},
+                {90, 70, 145},
+                {90, 70, 145},
+                {90, 70, 145}
+            };
+            interpolateAngle(legs, stand4, stepCounter);
+        } else {
+            angleTab4(rotate, 0, group1, group2, middleGroup1, middleGroup2);
+            //rotate1
+            interpolateAngle(legs, rotate, stepCounter); 
+            
+            angleTab4(rotate, 1, group1, group2, middleGroup1, middleGroup2);
+            //rotate2
+            interpolateAngle(legs, rotate, stepCounter); 
         
-        angleTab4(walk, 1, group1, group2, middleGroup1, middleGroup2);
-        //walk2
-        interpolateAngle(legs, walk, stepCounter); 
-    
-        angleTab4(walk, 2, group1, group2, middleGroup1, middleGroup2);
+            angleTab4(rotate, 2, group1, group2, middleGroup1, middleGroup2);
 
-        //walk 3
-        interpolateAngle(legs, walk, stepCounter); 
+            //rotate3
+            interpolateAngle(legs, rotate, stepCounter); 
 
-        angleTab4(walk, 3, group1, group2, middleGroup1, middleGroup2);
-        //walk4
-        interpolateAngle(legs, walk, stepCounter);  
+            angleTab4(rotate, 3, group1, group2, middleGroup1, middleGroup2);
+            //rotate4
+            interpolateAngle(legs, rotate, stepCounter);
+        }
     }
-
-    int stand [6][3] = {
-        {90, 70, 145},
-        {90, 70, 145},
-        {90, 70, 145},
-        {90, 70, 145},
-        {90, 70, 145},
-        {90, 70, 145}
-    };
-
-    interpolateAngle(legs, stand, stepCounter);
 }
 
 void movements::forward() {
