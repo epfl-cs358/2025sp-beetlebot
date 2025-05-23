@@ -7,6 +7,7 @@ class movements {
 
         //simple walk
         void forward();
+        void ripple();
         void rotation(int direction);
         void sideways(int direction);
 
@@ -17,9 +18,10 @@ class movements {
         void initializeAllServos(float angleC, float angleF, float angleT);
 
         //forward angle swap - tripod gait
-        void angleTab2 (int angles[6][3], int walk, int group2 [4][3], int group1 [4][3]);
+        void angleTab2 (int angles[6][3], int walk, int group1 [4][3], int group2 [4][3]);
         void angleTab4(int angles[6][3], int walk, int group1 [4][3], int group2[4][3], 
             int middleGroup1 [4][3], int middleGroup2 [4][3]);
+        void angleTabCorner (int angles[6][3], int walk, int group1 [4][3], int group2 [4][3]);
 
         movements(leg lf, leg rf, leg lm, leg rm, leg lb, leg rb, Adafruit_PWMServoDriver &multiplexer, int stepCounter)
         : multiplexer(multiplexer), lf(lf), rf(rf), lm(lm), rm(rm), lb(lb), rb(rb), stepCounter(stepCounter)
