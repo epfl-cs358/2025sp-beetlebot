@@ -2,18 +2,19 @@
 #include "leg.h"
 #include "movements.h"
 #include "wifi_credentials.h"
+#include "SPIFFS.h"
 
-const bool WEB_SERIAL = false; // Set to true to enable WebSerial, if false normal serial will be used
+const bool WEB_SERIAL = true; // Set to true to enable WebSerial, if false normal serial will be used
 
+String processor(const String& var);
 
-void handleWifiSerialInput(uint8_t *data, size_t len);
-void handleSerialInput(); // Depreciated serial input function, left for reference
+void handleWifiSerialInput(const uint8_t *data, size_t len);
+void handleSerialInput(); // Deprecated serial input function, left for reference
 void handleTextCommand(String input);
 void handleKeyCommand(char key); 
 void printHelp();
 
-template<typename T>
-void Sprintln(T msg);
+void Sprintln(const char* msg);
 
-template<typename T>
-void Sprint(T msg);
+void Sprint(const char* msg);
+void sendJson();

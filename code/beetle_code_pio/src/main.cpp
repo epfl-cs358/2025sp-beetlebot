@@ -3,6 +3,15 @@
 
 Adafruit_PWMServoDriver multiplexer = Adafruit_PWMServoDriver(0x40);
 AsyncWebServer server(80);
+String wifistr;
+char lastInput[3] = "C";
+int lastDists[3] = {0};
+
+// create an easy-to-use handler
+static AsyncWebSocketMessageHandler wsHandler;
+
+// add it to the websocket server
+static AsyncWebSocket ws("/ws", wsHandler.eventHandler());
 
 leg lf = leg(multiplexer, lfCOffset, lfFOffset, lfTOffset, "lf", 0, 
     servoPins[0][Coxa], servoPins[0][Femur], servoPins[0][Tibia]);
@@ -23,30 +32,61 @@ unsigned int offsetAngle = 5;
 movements motion = movements(lf, rf, lm, rm, lb,rb, multiplexer, 20);
 leg *current = motion.current;
 
+String processor(const String& var){
+  Serial.println(var);
+  if(var == "ADDR"){
+    return wifistr;
+  }  
+  return String();
+}
+
 void setup () {
     Serial.begin(9600);
     
     if (WEB_SERIAL) {
         //To check if the password and ssid are correct
-        Serial.println("Connecting to WiFi...");
+        Serial.println(PROGMEM "Connecting to WiFi...");
         Serial.println(WIFI_SSID);
-        Serial.println(WIFI_PASS);
         
         WiFi.mode(WIFI_STA);
         WiFi.begin(WIFI_SSID, WIFI_PASS);
         
         if (WiFi.waitForConnectResult() != WL_CONNECTED) {
-        Serial.printf("WiFi Failed!\n");
+        Serial.printf(PROGMEM "WiFi Failed!\n");
         return;
         }
         
         // WebSerial is accessible at "<IP Address>/webserial" from your browser
-        Serial.print("IP Address: ");
+        Serial.print(PROGMEM "IP Address: ");
         Serial.println(WiFi.localIP());
+        wifistr = WiFi.localIP().toString();
 
-        WebSerial.begin(&server);
-        WebSerial.msgCallback(handleWifiSerialInput);
-        server.begin();
+        if(!SPIFFS.begin(true)){
+            Serial.println(PROGMEM "An Error has occurred while mounting SPIFFS");
+            return;
+        }
+        
+        server.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
+            request->send(SPIFFS, "/index.html", String(), false, processor);});
+
+        server.on("/joy.js", HTTP_GET, [](AsyncWebServerRequest *request){
+            request->send(SPIFFS, "/joy.js","text/javascript");});
+
+        server.on("/style.css", HTTP_GET, [](AsyncWebServerRequest *request){
+            request->send(SPIFFS, "/style.css","text/css");});
+
+        server.on("/favicon.ico", HTTP_GET, [](AsyncWebServerRequest *request){
+            request->send(SPIFFS, "/favicon.ico","image/x-icon");});
+
+        server.on("/bot.png", HTTP_GET, [](AsyncWebServerRequest *request){
+            request->send(SPIFFS, "/bot.png","image/png");});
+
+        wsHandler.onMessage([](AsyncWebSocket *server, AsyncWebSocketClient *client, const uint8_t *data, size_t len) {
+            memcpy(lastInput, data, sizeof(*data));
+        });
+
+    server.addHandler(&ws);
+    server.begin();
     }
     
 
@@ -63,17 +103,20 @@ void setup () {
 }
 
 void loop() {
+    sleep(1);
+    ws.cleanupClients();
+    sendJson();
+
+    // switch (lastInput) {...}
+
     if (!WEB_SERIAL) {
         handleSerialInput();
     }
 
 }
 
-void handleWifiSerialInput(uint8_t *data, size_t len) {
-    String input = "";
-    for (size_t i = 0; i < len; i++) {
-        input += char(data[i]);
-    }
+void handleWifiSerialInput(const uint8_t *data, size_t len) {
+    String input = String((const char*) data);
     input.trim();
 
     if (input.length() == 1) {
@@ -103,21 +146,23 @@ void handleTextCommand(String input) {
     for(uint8_t i = 0; i < 6; i++) {
         if(input == motion.legs[i]->name) {
           current = motion.legs[i];
-          Sprint("Selected leg: ");
-          Sprintln(current->name);
+          Sprint(PROGMEM "Selected leg: ");
+          Sprintln(current->name.c_str());
           return;
         }
     }
     
-    if (input.startsWith("offset ")) {
+    if (input.startsWith(PROGMEM "offset ")) {
         String offsetValue = input.substring(7); // Extract the value after "offset "
         int newOffset = offsetValue.toInt(); // Convert to integer
         if (newOffset > 0) { // Ensure it's a valid positive number
             offsetAngle = newOffset;
-            Sprint("Offset angle set to: ");
-            Sprintln(offsetAngle);
+            char temp[5] = {0};
+            itoa(offsetAngle, temp, 10);
+            Sprint(PROGMEM "Offset angle set to: ");
+            Sprintln(temp);
         } else {
-            Sprintln("Invalid offset value. Please provide a positive number.");
+            Sprintln(PROGMEM "Invalid offset value. Please provide a positive number.");
         }
     } else if (input == "forward") {
         motion.forward();
@@ -130,7 +175,7 @@ void handleTextCommand(String input) {
     } else if(input == "rot ccw") {
         motion.rotation(0);
     } else {
-        Sprintln("Unknown command. Type 'help' for a list of commands.");
+        Sprintln(PROGMEM "Unknown command. Type 'help' for a list of commands.");
     }
   }
 
@@ -169,45 +214,56 @@ void handleKeyCommand(char key) {
         motion.currAngles[current->index][Tibia]= motion.currAngles[current->index][Tibia] -offsetAngle ;
         break;
     }
-    Sprint(current->name);
+    Sprint(current->name.c_str());
     Sprint(" - Coxa:");
-    Sprint(motion.currAngles[current->index][Coxa]);
+    char temp[5] = {0};
+    itoa(motion.currAngles[current->index][Coxa], temp, 10);
+    Sprint(temp);
     Sprint("°, Femur:");
-    Sprint(motion.currAngles[current->index][Femur]);
+    itoa(motion.currAngles[current->index][Femur], temp, 10); // itoa creates null-terminated string so no need to clean
+    Sprint(temp);
     Sprint("°, Tibia:");
-    Sprint(motion.currAngles[current->index][Tibia]);
+    itoa(motion.currAngles[current->index][Tibia], temp, 10);
+    Sprint(temp);
     Sprintln("°");
 }
 
 
 void printHelp() {
-    Sprintln("\nServo Control System:");
-    Sprintln("Quick commands (single key):");
-    Sprintln("Q/A - Coxa +/-");
-    Sprintln("W/S - Femur +/-");
-    Sprintln("E/D - Tibia +/-");
-    Sprintln("\nAdvanced commands:");
-    Sprintln("stand - Beetlebot stands up");
-    Sprintln("forward - tripod");
-    Sprintln("rot cw - clockwise tripod gait rotation");
-    Sprintln("rot ccw - counterclockwise tripod gait rotation");
+    Sprintln(PROGMEM "\nServo Control System:");
+    Sprintln(PROGMEM "Quick commands (single key):");
+    Sprintln(PROGMEM "Q/A - Coxa +/-");
+    Sprintln(PROGMEM "W/S - Femur +/-");
+    Sprintln(PROGMEM "E/D - Tibia +/-");
+    Sprintln(PROGMEM "\nAdvanced commands:");
+    Sprintln(PROGMEM "stand - Beetlebot stands up");
+    Sprintln(PROGMEM "forward - tripod");
+    Sprintln(PROGMEM "rot cw - clockwise tripod gait rotation");
+    Sprintln(PROGMEM "rot ccw - counterclockwise tripod gait rotation");
 
 }
 
-template<typename T>
-void Sprintln(T msg) {
+void Sprintln(const char* msg) {
     if (WEB_SERIAL) {
-        WebSerial.println(msg);
+        ws.printfAll(msg);
     } else {
         Serial.println(msg);
     }
 }
 
-template<typename T>
-void Sprint(T msg) {
+void Sprint(const char* msg) {
     if (WEB_SERIAL) {
-        WebSerial.print(msg);
+        ws.printfAll(msg);
     } else {
         Serial.print(msg);
     }
+    
+}
+
+void sendJson() {
+    String temp = String(R"({"act": )") + String(lastInput) + 
+        String(R"(, "dist0":)") + String(lastDists[0]) + 
+        String(R"(, "dist1":)") + String(lastDists[1]) + 
+        String(R"(, "dist2":)") + String(lastDists[2]);
+    ws.printfAll(temp.c_str());
 }
