@@ -170,6 +170,10 @@ void handleTextCommand(String input) {
         printHelp();
     } else if(input == "stand") {
         motion.initializeAllServos(standAngle[Coxa], standAngle[Femur], standAngle[Tibia]);
+    } else if(input == "stand") {
+        motion.initializeAllServos(sitAngle[Coxa], sitAngle[Femur], sitAngle[Tibia]);
+    } else if(input == "sit up") {
+        motion.sitUp();
     } else if(input == "rot cw") {
         motion.rotation(1);
     } else if(input == "rot ccw") {
@@ -182,34 +186,34 @@ void handleTextCommand(String input) {
 void handleKeyCommand(char key) {
     switch(key) {
       case 'q': 
-        current->setAngle(current->pinC, offsetAngle, motion.currAngles[current->index][Coxa]);
+        current->setAngle(current->pinC+ offsetAngle, motion.currAngles[current->index][Coxa]);
         motion.currAngles[current->index][Coxa]= motion.currAngles[current->index][Coxa] + offsetAngle;
         break;
       case 'a': 
-        current->setAngle(current->pinC, -offsetAngle, motion.currAngles[current->index][Coxa]); 
+        current->setAngle(current->pinC -offsetAngle, motion.currAngles[current->index][Coxa]); 
         motion.currAngles[current->index][Coxa]= motion.currAngles[current->index][Coxa] -offsetAngle;
         break;
       case 'w': 
-        current->setAngle(current->pinF, offsetAngle, motion.currAngles[current->index][Femur]); 
+        current->setAngle(current->pinF+ offsetAngle, motion.currAngles[current->index][Femur]); 
         motion.currAngles[current->index][Femur]= motion.currAngles[current->index][Femur] + offsetAngle;
         break;
       case 's': 
-        current->setAngle(current->pinF, -offsetAngle, motion.currAngles[current->index][Femur]); 
+        current->setAngle(current->pinF -offsetAngle, motion.currAngles[current->index][Femur]); 
         motion.currAngles[current->index][Femur]= motion.currAngles[current->index][Femur] - offsetAngle;
         break;
       case 'e': 
         if (current->pinT>=0 && current->pinT<=15) {
-            current->setAngle(current->pinT, offsetAngle, motion.currAngles[current->index][Tibia]); 
+            current->setAngle(current->pinT +offsetAngle, motion.currAngles[current->index][Tibia]); 
         } else {
-            current->setAngle(current->pinT, offsetAngle, motion.currAngles[current->index][Tibia], current->index); 
+            current->setAngle(current->pinT +offsetAngle, motion.currAngles[current->index][Tibia], current->index); 
         }
         motion.currAngles[current->index][Tibia]= motion.currAngles[current->index][Tibia] + offsetAngle;
         break;
       case 'd': 
         if (current->pinT>=0 && current->pinT<=15) {
-            current->setAngle(current->pinT, -offsetAngle, motion.currAngles[current->index][Tibia]); 
+            current->setAngle(current->pinT -offsetAngle, motion.currAngles[current->index][Tibia]); 
         } else {
-            current->setAngle(current->pinT, -offsetAngle, motion.currAngles[current->index][Tibia], current->index); 
+            current->setAngle(current->pinT -offsetAngle, motion.currAngles[current->index][Tibia], current->index); 
         }
         motion.currAngles[current->index][Tibia]= motion.currAngles[current->index][Tibia] -offsetAngle ;
         break;
@@ -236,7 +240,9 @@ void printHelp() {
     Sprintln(PROGMEM "W/S - Femur +/-");
     Sprintln(PROGMEM "E/D - Tibia +/-");
     Sprintln(PROGMEM "\nAdvanced commands:");
-    Sprintln(PROGMEM "stand - Beetlebot stands up");
+    Sprintln(PROGMEM "stand - Beetlebot in stand position [not a smooth movement]");
+    Sprintln(PROGMEM "sit - Beetlebot in sit position [not a smooth movement]");
+    Sprintln(PROGMEM "sit up - Beetlebot from sit to stand");
     Sprintln(PROGMEM "forward - tripod");
     Sprintln(PROGMEM "rot cw - clockwise tripod gait rotation");
     Sprintln(PROGMEM "rot ccw - counterclockwise tripod gait rotation");

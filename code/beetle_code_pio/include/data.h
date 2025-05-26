@@ -15,7 +15,7 @@ enum legIndex {
     LF = 0, RF = 1, LM = 2, RM = 3, LB = 4, RB = 5
 };
 
-const int sitAngle [3] = {90, 90, 90};
+const int sitAngle [3] = {90, 180, 45};
 const int standAngle [3] = {90, 70, 145};
 const int curlAngle [3] = {90, 180, 35};
 
@@ -26,30 +26,29 @@ const int servoPins [6][3] = {
     {13, 14, 15}, {2, 1, 0}
 };
 
-
 const int lfCOffset = 0;
 const int lfFOffset = 0;
 const int lfTOffset = 0;
 
 const int rfCOffset = 0;
 const int rfFOffset = 0;
-const int rfTOffset = 0;
+const int rfTOffset = 5;
 
 const int lmCOffset = 0;
 const int lmFOffset = 0;
-const int lmTOffset = 0;
+const int lmTOffset = -5;
 
 const int rmCOffset = 0;
-const int rmFOffset = 0;
-const int rmTOffset = 0;
+const int rmFOffset = 5;
+const int rmTOffset = -5;
 
 const int lbCOffset = 0;
-const int lbFOffset = 0;
-const int lbTOffset = 0;
+const int lbFOffset = 5;
+const int lbTOffset = -2;
 
 const int rbCOffset = 0;
-const int rbFOffset = 0;
-const int rbTOffset = 0;
+const int rbFOffset = -5;
+const int rbTOffset = 5;
 
 
 const int periodMs = 10;

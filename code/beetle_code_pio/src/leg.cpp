@@ -1,7 +1,8 @@
 #include "leg.h"
 
-void leg::setAngle(int servoPin, int offset, float angle, int servoOnEsp) {
+void leg::setAngle(int servoPin, float angle, int servoOnEsp) {
     //pins on the multiplexer
+    int offset = servoPin == (pinC) ? offsetCoxa : (servoPin == (pinF) ? offsetFemur : offsetTibia);
     angle = constrain(angle + offset, 0, 180);
     if (servoPin<16) {
         int pulse = angleToPulse(angle);

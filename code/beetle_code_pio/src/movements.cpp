@@ -5,10 +5,10 @@
 
 void movements::initializeAllServos(float angleC, float angleF, float angleT) {
     for(uint8_t i = 0; i < 6; i++) {
-        legs[i]->setAngle(servoPins[i][Coxa], 0, angleC); // 0 for offset bc haven't set it yet
-        legs[i]->setAngle(servoPins[i][Femur], 0, angleF);
-        if (i==0) legs[i]->setAngle(servoPins[i][Tibia], 0, angleT, 0);
-        else if (i==1) legs[i]->setAngle(servoPins[i][Tibia], 0, angleT, 1);
+        legs[i]->setAngle(servoPins[i][Coxa], angleC); // 0 for offset bc haven't set it yet
+        legs[i]->setAngle(servoPins[i][Femur], angleF);
+        if (i==0) legs[i]->setAngle(servoPins[i][Tibia], angleT, 0);
+        else if (i==1) legs[i]->setAngle(servoPins[i][Tibia], angleT, 1);
         else legs[i]->setAngle(servoPins[i][Tibia], 0, angleT);
 
         currAngles[i][Coxa] = angleC;
@@ -20,8 +20,26 @@ void movements::initializeAllServos(float angleC, float angleF, float angleT) {
 
 void movements::sitUp () {
     initializeAllServos(sitAngle[Coxa], sitAngle[Femur], sitAngle[Tibia]);
+    int sit1[6][3] = {
+        {90, 135, 85},
+        {90, 135, 85},
+        {90, 135, 85},
+        {90, 135, 85},
+        {90, 135, 85},
+        {90, 135, 85}
+    };
+    int sit2[6][3] = {
+        {90, 70, 145},
+        {90, 70, 145},
+        {90, 70, 145},
+        {90, 70, 145},
+        {90, 70, 145},
+        {90, 70, 145}
+    };
 
-    
+    interpolateAngle(legs, sit1, stepCounter);
+    interpolateAngle(legs, sit2, stepCounter);
+
 }
 
 //helper for a tripod gait
@@ -242,9 +260,6 @@ void movements::forward() {
     }
 }
 
-void movements::ripple() {
-    
-}
 
 void movements::sideways(int direction){
     // direction = 1 for left, 0 for right
@@ -351,14 +366,14 @@ void movements::interpolateAngle(leg* body[6], int finalAngles[6][3], int stepNu
 
         for (int j = 0; j < 6; ++j) {
             if (i == stepNumber) {
-                body[j]->setAngle(body[j]->pinC, 0, finalAngles[j][Coxa]);
-                body[j]->setAngle(body[j]->pinF, 0, finalAngles[j][Femur]);
-                body[j]->setAngle(body[j]->pinT, 0, finalAngles[j][Tibia], j);
+                body[j]->setAngle(body[j]->pinC, finalAngles[j][Coxa]);
+                body[j]->setAngle(body[j]->pinF, finalAngles[j][Femur]);
+                body[j]->setAngle(body[j]->pinT, finalAngles[j][Tibia], j);
 
             } else {
-                body[j]->setAngle(body[j]->pinC, 0, angles[j][Coxa]);
-                body[j]->setAngle(body[j]->pinF, 0, angles[j][Femur]);
-                body[j]->setAngle(body[j]->pinT, 0, angles[j][Tibia], j);
+                body[j]->setAngle(body[j]->pinC, angles[j][Coxa]);
+                body[j]->setAngle(body[j]->pinF, angles[j][Femur]);
+                body[j]->setAngle(body[j]->pinT, angles[j][Tibia], j);
             }
         }
         delay(SWEEP_DELAY);

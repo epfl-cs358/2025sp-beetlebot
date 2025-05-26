@@ -16,7 +16,7 @@ float mapF(float x, float in_min, float in_max, float out_min, float out_max);
 class leg {
     public: 
 
-        void setAngle (int servoPin, int offset, float angle, int onEsp = 2); //0 - left tibia, 1 - right tibia, 2 : not on esp
+        void setAngle (int servoPin, float angle, int onEsp = 2); //0 - left tibia, 1 - right tibia, 2 : not on esp
 
 
         int coxaLimits[2] = {65, 110};
