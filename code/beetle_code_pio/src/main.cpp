@@ -111,31 +111,12 @@ bool isMultiplexerConnected(uint8_t address = 0x40) {
 }
 
 void loop() {
-    sleep(1);
+    //sleep(1);
     ws.cleanupClients();
     sendJson();
 
     // switch (lastInput) {...}
 
-    // Check every 2 seconds
-    if (millis() - lastCheck > 2000) {
-        lastCheck = millis();
-        bool multiplexerError = !isMultiplexerConnected(0x40);
-
-        if (multiplexerError) {
-            if (multiplexerOk) {
-                multiplexerOk = false;
-                Sprintln("Multiplexer not detected! Attempting to reconnect...");
-            }
-            multiplexer.begin();
-            multiplexer.setPWMFreq(60);
-            delay(10);
-            motion.initializeAllServos(standAngle[Coxa], standAngle[Femur], standAngle[Tibia]);
-        } else if (!multiplexerOk) {
-            multiplexerOk = true;
-            Sprintln("Multiplexer reconnected!");
-        }
-    }
 
     if (!WEB_SERIAL) {
         handleSerialInput();
@@ -213,34 +194,34 @@ void handleTextCommand(String input) {
 void handleKeyCommand(char key) {
     switch(key) {
       case 'q': 
-        current->setAngle(current->pinC+ offsetAngle, motion.currAngles[current->index][Coxa]);
+        current->setAngle(current->pinC, motion.currAngles[current->index][Coxa] + offsetAngle);
         motion.currAngles[current->index][Coxa]= motion.currAngles[current->index][Coxa] + offsetAngle;
         break;
       case 'a': 
-        current->setAngle(current->pinC -offsetAngle, motion.currAngles[current->index][Coxa]); 
+        current->setAngle(current->pinC, motion.currAngles[current->index][Coxa] - offsetAngle); 
         motion.currAngles[current->index][Coxa]= motion.currAngles[current->index][Coxa] -offsetAngle;
         break;
       case 'w': 
-        current->setAngle(current->pinF+ offsetAngle, motion.currAngles[current->index][Femur]); 
+        current->setAngle(current->pinF, motion.currAngles[current->index][Femur] + offsetAngle); 
         motion.currAngles[current->index][Femur]= motion.currAngles[current->index][Femur] + offsetAngle;
         break;
       case 's': 
-        current->setAngle(current->pinF -offsetAngle, motion.currAngles[current->index][Femur]); 
+        current->setAngle(current->pinF, motion.currAngles[current->index][Femur] - offsetAngle); 
         motion.currAngles[current->index][Femur]= motion.currAngles[current->index][Femur] - offsetAngle;
         break;
       case 'e': 
         if (current->pinT>=0 && current->pinT<=15) {
-            current->setAngle(current->pinT +offsetAngle, motion.currAngles[current->index][Tibia]); 
+            current->setAngle(current->pinT, motion.currAngles[current->index][Tibia] +offsetAngle); 
         } else {
-            current->setAngle(current->pinT +offsetAngle, motion.currAngles[current->index][Tibia], current->index); 
+            current->setAngle(current->pinT, motion.currAngles[current->index][Tibia] +offsetAngle, current->index); 
         }
         motion.currAngles[current->index][Tibia]= motion.currAngles[current->index][Tibia] + offsetAngle;
         break;
       case 'd': 
         if (current->pinT>=0 && current->pinT<=15) {
-            current->setAngle(current->pinT -offsetAngle, motion.currAngles[current->index][Tibia]); 
+            current->setAngle(current->pinT, motion.currAngles[current->index][Tibia] -offsetAngle); 
         } else {
-            current->setAngle(current->pinT -offsetAngle, motion.currAngles[current->index][Tibia], current->index); 
+            current->setAngle(current->pinT, motion.currAngles[current->index][Tibia] -offsetAngle, current->index); 
         }
         motion.currAngles[current->index][Tibia]= motion.currAngles[current->index][Tibia] -offsetAngle ;
         break;
