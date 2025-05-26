@@ -7,11 +7,10 @@ class movements {
 
         //simple walk
         void forward();
-        void ripple();
         void rotation(int direction);
         void sideways(int direction);
 
-        void sitUp();
+        void standUp();
 
         //necessary for smoother movements : interpolate the angles to make sure each leg moves together
         void interpolateAngle(leg* body[6], int finalAngles[6][3], int stepNumber);

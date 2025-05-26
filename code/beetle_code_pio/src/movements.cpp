@@ -18,36 +18,27 @@ void movements::initializeAllServos(float angleC, float angleF, float angleT) {
     delay(SWEEP_DELAY); 
 }
 
-void movements::sitUp () {
+void movements::standUp() {
     initializeAllServos(sitAngle[Coxa], sitAngle[Femur], sitAngle[Tibia]);
     int sit1[6][3] = {
-        {90, 170, 45},
-        {90, 170, 45},
-        {90, 170, 45},
-        {90, 170, 45},
-        {90, 170, 45},
-        {90, 170, 45}
+        {90, 115, 100},
+        {90, 115, 100},
+        {90, 115, 100},
+        {90, 115, 100},
+        {90, 115, 100},
+        {90, 115, 100}
     };
     int sit2[6][3] = {
-        {90, 135, 85},
-        {90, 135, 85},
-        {90, 135, 85},
-        {90, 135, 85},
-        {90, 135, 85},
-        {90, 135, 85}
-    };
-    int sit3[6][3] = {
-        {90, 70, 145},
-        {90, 70, 145},
-        {90, 70, 145},
-        {90, 70, 145},
-        {90, 70, 145},
-        {90, 70, 145}
+        {90, 50, 145},
+        {90, 50, 145},
+        {90, 50, 145},
+        {90, 50, 145},
+        {90, 50, 145},
+        {90, 50, 145}
     };
 
     interpolateAngle(legs, sit1, stepCounter);
     interpolateAngle(legs, sit2, stepCounter);
-     interpolateAngle(legs, sit3, stepCounter);
 
 }
 
