@@ -7,7 +7,7 @@ const uint8_t sensorCount = 3;
 
 // The Arduino pin connected to the XSHUT pin of each sensor.
 // TODO: PINS USED ON THE ARDUINO FOR NOW, WILL NEED TO BE RECHECKED IF THEY'RE AVAILABLE ON THE ESP32
-const uint8_t xshutPins[sensorCount] = { 4, 5, 6 };
+const uint8_t xshutPins[sensorCount] = { 25, 26, 27 };
 
 VL53L1X sensors[sensorCount];
 

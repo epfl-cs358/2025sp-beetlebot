@@ -82,7 +82,7 @@ void setup () {
             request->send(SPIFFS, "/bot.png","image/png");});
 
         wsHandler.onMessage([](AsyncWebSocket *server, AsyncWebSocketClient *client, const uint8_t *data, size_t len) {
-            memcpy(lastInput, data, sizeof(*data));
+            memcpy(lastInput, data, 2);
         });
 
     server.addHandler(&ws);
@@ -261,9 +261,9 @@ void Sprint(const char* msg) {
 }
 
 void sendJson() {
-    String temp = String(R"({"act": )") + String(lastInput) + 
-        String(R"(, "dist0":)") + String(lastDists[0]) + 
+    String temp = String(R"({"act":")") + String(lastInput) + 
+        String(R"(", "dist0":)") + String(lastDists[0]) + 
         String(R"(, "dist1":)") + String(lastDists[1]) + 
-        String(R"(, "dist2":)") + String(lastDists[2]);
+        String(R"(, "dist2":)") + String(lastDists[2]) +  String(R"(})");
     ws.printfAll(temp.c_str());
 }
