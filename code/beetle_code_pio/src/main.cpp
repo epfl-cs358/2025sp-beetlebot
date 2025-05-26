@@ -29,6 +29,9 @@ leg rb = leg(multiplexer, rbCOffset, rbFOffset, rbTOffset, "rb", 5,
 //Default for manual control of joints
 unsigned int offsetAngle = 5;
 
+static bool multiplexerOk = true;
+static unsigned long lastCheck = 0;
+
 movements motion = movements(lf, rf, lm, rm, lb,rb, multiplexer, 20);
 leg *current = motion.current;
 
@@ -102,6 +105,11 @@ void setup () {
     printHelp();
 }
 
+bool isMultiplexerConnected(uint8_t address = 0x40) {
+    Wire.beginTransmission(address);
+    return (Wire.endTransmission() == 0);
+}
+
 void loop() {
     sleep(1);
     ws.cleanupClients();
@@ -109,10 +117,29 @@ void loop() {
 
     // switch (lastInput) {...}
 
+    // Check every 2 seconds
+    if (millis() - lastCheck > 2000) {
+        lastCheck = millis();
+        bool multiplexerError = !isMultiplexerConnected(0x40);
+
+        if (multiplexerError) {
+            if (multiplexerOk) {
+                multiplexerOk = false;
+                Sprintln("Multiplexer not detected! Attempting to reconnect...");
+            }
+            multiplexer.begin();
+            multiplexer.setPWMFreq(60);
+            delay(10);
+            motion.initializeAllServos(standAngle[Coxa], standAngle[Femur], standAngle[Tibia]);
+        } else if (!multiplexerOk) {
+            multiplexerOk = true;
+            Sprintln("Multiplexer reconnected!");
+        }
+    }
+
     if (!WEB_SERIAL) {
         handleSerialInput();
     }
-
 }
 
 void handleWifiSerialInput(const uint8_t *data, size_t len) {
