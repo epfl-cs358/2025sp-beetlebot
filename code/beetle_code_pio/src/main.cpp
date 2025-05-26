@@ -197,7 +197,7 @@ void handleTextCommand(String input) {
         printHelp();
     } else if(input == "stand") {
         motion.initializeAllServos(standAngle[Coxa], standAngle[Femur], standAngle[Tibia]);
-    } else if(input == "stand") {
+    } else if(input == "sit") {
         motion.initializeAllServos(sitAngle[Coxa], sitAngle[Femur], sitAngle[Tibia]);
     } else if(input == "sit up") {
         motion.sitUp();

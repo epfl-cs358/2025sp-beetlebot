@@ -9,7 +9,7 @@ void movements::initializeAllServos(float angleC, float angleF, float angleT) {
         legs[i]->setAngle(servoPins[i][Femur], angleF);
         if (i==0) legs[i]->setAngle(servoPins[i][Tibia], angleT, 0);
         else if (i==1) legs[i]->setAngle(servoPins[i][Tibia], angleT, 1);
-        else legs[i]->setAngle(servoPins[i][Tibia], 0, angleT);
+        else legs[i]->setAngle(servoPins[i][Tibia], angleT);
 
         currAngles[i][Coxa] = angleC;
         currAngles[i][Femur] = angleF;

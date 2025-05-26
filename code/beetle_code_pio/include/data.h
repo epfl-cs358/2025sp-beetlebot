@@ -17,7 +17,6 @@ enum legIndex {
 
 const int sitAngle [3] = {90, 180, 45};
 const int standAngle [3] = {90, 70, 145};
-const int curlAngle [3] = {90, 180, 35};
 
 //goes from left to right, front to back
 const int servoPins [6][3] = {
@@ -36,7 +35,7 @@ const int rfTOffset = 5;
 
 const int lmCOffset = 0;
 const int lmFOffset = 0;
-const int lmTOffset = -5;
+const int lmTOffset = 0;
 
 const int rmCOffset = 0;
 const int rmFOffset = 5;
