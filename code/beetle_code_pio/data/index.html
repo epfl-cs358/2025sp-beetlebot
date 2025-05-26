@@ -11,6 +11,18 @@
             <h1>Keyboard controls</h1>
             <input id='box' type='text' value="" oninput='inputfunc()' onkeyup='keyupfunc()' maxlength='1'>
             <p>Use the keys around s like the joystick!</p>
+            <fieldset>
+                <legend>Select your keyboard disposition:</legend>
+                <div>
+                    <input type="radio" id="qwertz" name="disposition" value="qwertz" checked />
+                    <label for="qwertz">qwertz</label>
+                </div>
+
+                <div>
+                    <input type="radio" id="azerty" name="disposition" value="azerty"/>
+                    <label for="azerty">azerty</label>
+                </div>
+            </fieldset>
         </div>
 
         <div id='js'>
@@ -41,6 +53,7 @@
         var inPrint = document.getElementById("inputPrint");
         var msgList = document.getElementById("msglist");
         var kbgroup = document.getElementById("kb");
+        var qwertzDis = document.getElementById("qwertz");
         var tsgroup = document.getElementById("js");
         var sensorDist = [100,100,100]; // will be drawn, values should be between 0 to w/2 or h/2
         
@@ -65,31 +78,60 @@
                 dir = "";
 
                 // we output the same values as the joystick to simplify
-                switch (inField.value) {
-                    case "w":
-                        dir = "N";
-                        break;
-                    case "e":
-                        dir = "NE";
-                        break;
-                    case "d":
-                        dir = "E";
-                        break;
-                    case "c":
-                        dir = "SE";
-                        break;
-                    case "x":
-                        dir = "S";
-                        break;
-                    case "y":
-                        dir = "SW";
-                        break;
-                    case "a":
-                        dir = "W";
-                        break;
-                    case "q":
-                        dir = "NW";
-                        break;
+                if (qwertzDis.checked) {
+                    switch (inField.value) {
+                        case "w":
+                            dir = "N";
+                            break;
+                        case "e":
+                            dir = "NE";
+                            break;
+                        case "d":
+                            dir = "E";
+                            break;
+                        case "c":
+                            dir = "SE";
+                            break;
+                        case "x":
+                            dir = "S";
+                            break;
+                        case "y":
+                            dir = "SW";
+                            break;
+                        case "a":
+                            dir = "W";
+                            break;
+                        case "q":
+                            dir = "NW";
+                            break;
+                    }
+                } else {
+                    switch (inField.value) {
+                        case "z":
+                            dir = "N";
+                            break;
+                        case "e":
+                            dir = "NE";
+                            break;
+                        case "d":
+                            dir = "E";
+                            break;
+                        case "c":
+                            dir = "SE";
+                            break;
+                        case "x":
+                            dir = "S";
+                            break;
+                        case "w":
+                            dir = "SW";
+                            break;
+                        case "q":
+                            dir = "W";
+                            break;
+                        case "a":
+                            dir = "NW";
+                            break;
+                    }
                 }
                 if (dir != "") { // only send if its a direction
                     inPrint.innerHTML = dir;
