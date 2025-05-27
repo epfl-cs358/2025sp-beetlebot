@@ -16,7 +16,8 @@ enum legIndex {
 };
 
 const int sitAngle [3] = {90, 150, 35}; //tibia 35
-const int standAngle [3] = {90, 70, 145};
+const int setAngle [3] = {90, 150, 90};
+const int standAngle [3] = {90, 50, 145};
 
 //goes from left to right, front to back
 const int servoPins [6][3] = {
@@ -30,20 +31,20 @@ const int lfFOffset = 0;
 const int lfTOffset = 0;
 
 const int rfCOffset = 0;
-const int rfFOffset = 0;
+const int rfFOffset = -5;
 const int rfTOffset = 0;
 
 const int lmCOffset = 0;
 const int lmFOffset = 0;
-const int lmTOffset = 0;
+const int lmTOffset = -5;
 
 const int rmCOffset = 0;
 const int rmFOffset = 0;
 const int rmTOffset = 0;
 
 const int lbCOffset = 0;
-const int lbFOffset = 5;
-const int lbTOffset = -2;
+const int lbFOffset = -5;
+const int lbTOffset = 0;
 
 const int rbCOffset = 0;
 const int rbFOffset = 0;

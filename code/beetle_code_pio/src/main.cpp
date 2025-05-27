@@ -180,6 +180,8 @@ void handleTextCommand(String input) {
         motion.initializeAllServos(standAngle[Coxa], standAngle[Femur], standAngle[Tibia]);
     } else if(input == "sit") {
         motion.initializeAllServos(sitAngle[Coxa], sitAngle[Femur], sitAngle[Tibia]);
+    } else if(input == "test set") {
+        motion.initializeAllServos(setAngle[Coxa], setAngle[Femur], setAngle[Tibia]);
     } else if(input == "sit up") {
         motion.standUp();
     } else if(input == "rot cw") {
