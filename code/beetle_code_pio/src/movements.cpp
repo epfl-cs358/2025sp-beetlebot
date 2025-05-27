@@ -113,32 +113,32 @@ void movements::rotation(int way){
     (way != -1 || way != 1) ? way = 1 : way; //if its neither ig we can make it turn clockwise
     
     int group1[6][3] = { 
-        {90 + way*(coxaWideOffset/2), 115, 145},  
-        {90 + way*coxaWideOffset, 70, 145},
+        {90 + way*(coxaWideOffset/2), 95, 145},  
+        {90 + way*coxaWideOffset, 50, 145},
 
-        {90 - way*(coxaWideOffset/4), 70, 145},
-        {90 - way*(coxaWideOffset/2), 70, 145},
+        {90 - way*(coxaWideOffset/4), 50, 145},
+        {90 - way*(coxaWideOffset/2), 50, 145},
     };
     int group2[4][3] = { 
-        {90 - way*(coxaWideOffset/4), 70, 145},
-        {90 - way*(coxaWideOffset/2), 70, 145},
+        {90 - way*(coxaWideOffset/4), 50, 145},
+        {90 - way*(coxaWideOffset/2), 50, 145},
 
-        {90 + way*(coxaWideOffset/2), 115, 145},
-        {90 + way*coxaWideOffset, 70, 145}
+        {90 + way*(coxaWideOffset/2), 95, 145},
+        {90 + way*coxaWideOffset, 50, 145}
     };
     int middleGroup1[4][3] = {
-        {90 + way*(coxaNarrowOffset/2), 115, 145},
-        {90 + way*coxaNarrowOffset, 70, 145},
+        {90 + way*(coxaNarrowOffset/2), 95, 145},
+        {90 + way*coxaNarrowOffset, 50, 145},
 
-        {90 - way*(coxaNarrowOffset/2), 70, 145}, 
-        {90 - way*coxaNarrowOffset, 70, 145}
+        {90 - way*(coxaNarrowOffset/2), 50, 145}, 
+        {90 - way*coxaNarrowOffset, 50, 145}
     };
     int middleGroup2[4][3] = {
-        {90 - way*(coxaNarrowOffset/2), 70, 145},
-        {90 - way*coxaNarrowOffset, 70, 145}, 
+        {90 - way*(coxaNarrowOffset/2), 50, 145},
+        {90 - way*coxaNarrowOffset, 50, 145}, 
 
-        {90 + way*(coxaNarrowOffset/2), 115, 145},
-        {90 + way*(coxaNarrowOffset), 70, 145}
+        {90 + way*(coxaNarrowOffset/2), 95, 145},
+        {90 + way*(coxaNarrowOffset), 50, 145}
     };
 
     int rotate [6][3];
@@ -146,39 +146,39 @@ void movements::rotation(int way){
     for (int i = 0; i<cycleNumber; ++i) {
         if (i == cycleNumber - 1) { //sets the robot back straight, three by three (legs) 
             int stand1 [6][3] = {
-                {90, 115, 145},
-                {group2[3][0], 70, 145}, //doesn't move
-                {middleGroup2[3][0], 70, 145},
-                {90, 115, 145},
-                {90, 115, 145},
-                {group2[3][0], 70, 145}
+                {90, 95, 145},
+                {group2[3][0], 50, 145}, //doesn't move
+                {middleGroup2[3][0], 50, 145},
+                {90, 95, 145},
+                {90, 95, 145},
+                {group2[3][0], 50, 145}
             };
             interpolateAngle(legs, stand1, stepCounter);
             int stand2 [6][3] = {
-                {90, 70, 145},
-                {group2[3][0], 70, 145},
-                {middleGroup2[3][0], 70, 145},
-                {90, 70, 145},
-                {90, 70, 145},
-                {group2[3][0], 70, 145}
+                {90, 50, 145},
+                {group2[3][0], 50, 145},
+                {middleGroup2[3][0], 50, 145},
+                {90, 50, 145},
+                {90, 50, 145},
+                {group2[3][0], 50, 145}
             };
             interpolateAngle(legs, stand2, stepCounter);
             int stand3 [6][3] = {
-                {90, 70, 145},
-                {90, 115, 145},
-                {90, 115, 145},
-                {90, 70, 145},
-                {90, 70, 145},
-                {90, 115, 145}
+                {90, 50, 145},
+                {90, 95, 145},
+                {90, 95, 145},
+                {90, 50, 145},
+                {90, 50, 145},
+                {90, 95, 145}
             };
             interpolateAngle(legs, stand3, stepCounter);
             int stand4 [6][3] = {
-                {90, 70, 145},
-                {90, 70, 145},
-                {90, 70, 145},
-                {90, 70, 145},
-                {90, 70, 145},
-                {90, 70, 145}
+                {90, 50, 145},
+                {90, 50, 145},
+                {90, 50, 145},
+                {90, 50, 145},
+                {90, 50, 145},
+                {90, 50, 145}
             };
             interpolateAngle(legs, stand4, stepCounter);
         } else {
@@ -207,19 +207,19 @@ void movements::forward() {
     int cycle = 6;
     //walk 1-4
     int group1[4][3] = {
-        {110, 70, 145},
-        {90, 70, 145},
+        {110, 50, 145},
+        {90, 50, 145},
 
-        {70, 70, 145},
-        {90, 115, 145}
+        {70, 50, 145},
+        {90, 95, 145}
     };
 
     int group2[4][3] = {
-        {70, 70, 145},
-        {90, 115, 145},
+        {70, 50, 145},
+        {90, 95, 145},
 
-        {110, 70, 145},
-        {90, 70, 145}
+        {110, 50, 145},
+        {90, 50, 145}
     };
 
     int  walk [6][3];
@@ -230,12 +230,12 @@ void movements::forward() {
             interpolateAngle(legs, walk, stepCounter);
         } else if (i == cycle - 1) { //restore for group1 : return to ground
             int standing [6][3]= {
-                {90, 70, 145},
-                {90, 70, 145},
-                {90, 70, 145},
-                {90, 70, 145},
-                {90, 70, 145},
-                {90, 70, 145}
+                {90, 50, 145},
+                {90, 50, 145},
+                {90, 50, 145},
+                {90, 50, 145},
+                {90, 50, 145},
+                {90, 50, 145}
             };
             interpolateAngle(legs, standing, stepCounter);
         } else {
@@ -275,44 +275,44 @@ void movements::forwardCurve(int way, float turn){
 
     //gait definition copied from forward()
     int group1[4][3] = {
-        {110, 70, 145},
-        { 90, 70, 145},
-        { 70, 70, 145},
-        { 90,115, 145}
+        {110, 50, 145},
+        { 90, 50, 145},
+        { 70, 50, 145},
+        { 90, 95, 145}
     };
     int group2[4][3] = {
-        { 70, 70, 145},
-        { 90,115, 145},
-        {110, 70, 145},
-        { 90, 70, 145}
+        { 70, 50, 145},
+        { 90, 95, 145},
+        {110, 50, 145},
+        { 90, 50, 145}
     };
     
     //rotation tables copied from rotation()
     const int coxaWide  = 25;
     const int coxaNarrow= 10;
     int rot_g1[4][3] = {
-        {90+way*(coxaWide/2),115,145},
-        {90+way* coxaWide   , 70,145},
-        {90-way*(coxaWide/4), 70,145},
-        {90-way*(coxaWide/2), 70,145}
+        {90+way*(coxaWide/2), 95,145},
+        {90+way* coxaWide   , 50,145},
+        {90-way*(coxaWide/4), 50,145},
+        {90-way*(coxaWide/2), 50,145}
     };
     int rot_g2[4][3] = {
-        {90-way*(coxaWide/4), 70,145},
-        {90-way*(coxaWide/2), 70,145},
-        {90+way*(coxaWide/2),115,145},
-        {90+way* coxaWide   , 70,145}
+        {90-way*(coxaWide/4), 50,145},
+        {90-way*(coxaWide/2), 50,145},
+        {90+way*(coxaWide/2),95,145},
+        {90+way* coxaWide   , 50,145}
     };
     int rot_mg1[4][3] = {
-        {90+way*(coxaNarrow/2),115,145},
-        {90+way* coxaNarrow   , 70,145},
-        {90-way*(coxaNarrow/2), 70,145},
-        {90-way* coxaNarrow   , 70,145}
+        {90+way*(coxaNarrow/2),95,145},
+        {90+way* coxaNarrow   , 50,145},
+        {90-way*(coxaNarrow/2), 50,145},
+        {90-way* coxaNarrow   , 50,145}
     };
     int rot_mg2[4][3] = {
-        {90-way*(coxaNarrow/2), 70,145},
-        {90-way* coxaNarrow   , 70,145},
-        {90+way*(coxaNarrow/2),115,145},
-        {90+way* coxaNarrow   , 70,145}
+        {90-way*(coxaNarrow/2), 50,145},
+        {90-way* coxaNarrow   , 50,145},
+        {90+way*(coxaNarrow/2),95,145},
+        {90+way* coxaNarrow   , 50,145}
     };
 
     
