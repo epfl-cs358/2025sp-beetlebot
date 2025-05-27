@@ -4,11 +4,11 @@
 
 class movements {
     public: 
-
         //simple walk
         void forward();
-        void rotation(int direction);
+        void rotation(int way);
         void sideways(int direction);
+        void forwardCurve(int way, float turn);
 
         void standUp();
 
@@ -57,7 +57,14 @@ class movements {
         leg lm;
         leg rm;
         leg lb;
-        leg rb;
-
-        
+        leg rb;    
 };
+
+// mix two 6×3 angle tables:  dst = (1-λ)*a + λ*b
+inline void mixTables(int dst[6][3], const int a[6][3],
+                      const int b[6][3], float lambda)
+{
+    for (uint8_t i = 0; i < 6; ++i)
+        for (uint8_t j = 0; j < 3; ++j)
+            dst[i][j] = a[i][j] + lambda * (b[i][j] - a[i][j]);
+}

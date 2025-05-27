@@ -104,14 +104,13 @@ void movements::angleTabCorner (int angles[6][3], int walk, int group2 [4][3], i
         }
     }
 }
-void movements::rotation(int direction){
+void movements::rotation(int way){
     initializeAllServos(standAngle[Coxa], standAngle[Femur], standAngle[Tibia]);
     int coxaWideOffset = 25;
     int coxaNarrowOffset = 10;
     int cycleNumber = 5;
 
-    int way = 1; //clockwise
-    if (!direction) way = -1; //counterclockwise
+    (way != -1 || way != 1) ? way = 1 : way; //if its neither ig we can make it turn clockwise
     
     int group1[6][3] = { 
         {90 + way*(coxaWideOffset/2), 115, 145},  
@@ -261,6 +260,85 @@ void movements::forward() {
 }
 
 
+
+//we turn while forward, -1 ou 1 for way
+//turn is a turning factor thats 0 < turn < 1
+void movements::forwardCurve(int way, float turn){
+    if (turn > 1) turn = 1;
+    if (turn < 0) turn = 0;
+    (way != -1 || way != 1) ? way = 1 : way; //if its neither ig we can make it turn clockwise
+
+    initializeAllServos(standAngle[Coxa], standAngle[Femur], standAngle[Tibia]);
+    int coxaWideOffset = 25;
+    int coxaNarrowOffset = 10;
+    int cycleNumber = 5;
+
+    //gait definition copied from forward()
+    int group1[4][3] = {
+        {110, 70, 145},
+        { 90, 70, 145},
+        { 70, 70, 145},
+        { 90,115, 145}
+    };
+    int group2[4][3] = {
+        { 70, 70, 145},
+        { 90,115, 145},
+        {110, 70, 145},
+        { 90, 70, 145}
+    };
+    
+    //rotation tables copied from rotation()
+    const int coxaWide  = 25;
+    const int coxaNarrow= 10;
+    int rot_g1[4][3] = {
+        {90+way*(coxaWide/2),115,145},
+        {90+way* coxaWide   , 70,145},
+        {90-way*(coxaWide/4), 70,145},
+        {90-way*(coxaWide/2), 70,145}
+    };
+    int rot_g2[4][3] = {
+        {90-way*(coxaWide/4), 70,145},
+        {90-way*(coxaWide/2), 70,145},
+        {90+way*(coxaWide/2),115,145},
+        {90+way* coxaWide   , 70,145}
+    };
+    int rot_mg1[4][3] = {
+        {90+way*(coxaNarrow/2),115,145},
+        {90+way* coxaNarrow   , 70,145},
+        {90-way*(coxaNarrow/2), 70,145},
+        {90-way* coxaNarrow   , 70,145}
+    };
+    int rot_mg2[4][3] = {
+        {90-way*(coxaNarrow/2), 70,145},
+        {90-way* coxaNarrow   , 70,145},
+        {90+way*(coxaNarrow/2),115,145},
+        {90+way* coxaNarrow   , 70,145}
+    };
+
+    
+    //thy work buffers
+    int walkFwd [6][3]; //forward table
+    int walkRot [6][3]; //rotation table for 1 step
+    int walkMix [6][3]; //mixed output of forward and rotation
+
+    //il y a 4 phases de marche, chaque phase correspond à un sous-étape
+    //1 lift tripod A, swing forward
+    //2 lift tripod B, swing forward
+    //3 lower tripod A, push ground
+    //4 lower tripod B, push ground
+    const uint8_t SUBSTEPS = 4;
+
+    for (uint8_t phase = 0; phase < SUBSTEPS; ++phase) {
+        angleTab2(walkFwd, phase, group2, group1);
+        angleTab4(walkRot, phase, rot_g1, rot_g2, rot_mg1, rot_mg2);
+        mixTables(walkMix, walkFwd, walkRot, turn * way);
+        interpolateAngle(legs, walkMix, stepCounter);
+    }
+    
+}
+
+
+
 void movements::sideways(int direction){
     // direction = 1 for left, 0 for right
     initializeAllServos(standAngle[Coxa], standAngle[Femur], standAngle[Tibia]);
@@ -386,4 +464,13 @@ void movements::interpolateAngle(leg* body[6], int finalAngles[6][3], int stepNu
         currAngles[i][Tibia] = finalAngles[i][Tibia];
     }
 
+}
+
+// mix two 6×3 angle tables:  dst = (1-λ)*a + λ*b
+inline void mixTables(int dst[6][3], const int a[6][3], const int b[6][3], float lambda){
+    for (uint8_t i = 0; i < 6; ++i){
+        for (uint8_t j = 0; j < 3; ++j){
+            dst[i][j] = a[i][j] + lambda * (b[i][j] - a[i][j]);
+        }
+    }
 }

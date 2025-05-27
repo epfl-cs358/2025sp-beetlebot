@@ -185,7 +185,15 @@ void handleTextCommand(String input) {
     } else if(input == "rot cw") {
         motion.rotation(1);
     } else if(input == "rot ccw") {
-        motion.rotation(0);
+        motion.rotation(-1);
+    } else if(input == "forw cw") {
+        motion.forwardCurve(1, 0.5);
+    } else if(input == "forw ccw") {
+        motion.forwardCurve(-1, 0.5);
+    } else if(input == "side left") {
+        motion.sideways(-1);
+    } else if(input == "side right") {
+        motion.sideways(1);
     } else {
         Sprintln(PROGMEM "Unknown command. Type 'help' for a list of commands.");
     }
@@ -254,7 +262,10 @@ void printHelp() {
     Sprintln(PROGMEM "forward - tripod");
     Sprintln(PROGMEM "rot cw - clockwise tripod gait rotation");
     Sprintln(PROGMEM "rot ccw - counterclockwise tripod gait rotation");
-
+    Sprintln(PROGMEM "forw cw - forward curve clockwise tripod gait");
+    Sprintln(PROGMEM "forw ccw - forward curve counterclockwise tripod gait");
+    Sprintln(PROGMEM "side left - sideways tripod gait to the left");
+    Sprintln(PROGMEM "side right - sideways tripod gait to the right");
 }
 
 void Sprintln(const char* msg) {
