@@ -11,6 +11,8 @@ int lastDists[3] = {0};
 bool satDown = true;
 int distSensorFront = 500; // 5 cm
 int distSensorSide = 700; // 7 cm
+bool movementType = true; // if sets to true, the robot rotates on itself to get to the direction
+//false : goes in the direction without rotating, ie crabwalk / backwards
 
 // create an easy-to-use handler
 static AsyncWebSocketMessageHandler wsHandler;
@@ -90,8 +92,11 @@ void setup () {
             request->send(SPIFFS, "/bot.png","image/png");});
 
         wsHandler.onMessage([](AsyncWebSocket *server, AsyncWebSocketClient *client, const uint8_t *data, size_t len) {
-            memcpy(lastInput, data, 2);
+            if (strcmp((const char*) data, "MC")) {
+                movementType = !movementType;
+            } else memcpy(lastInput, data, 2);
         });
+
 
     server.addHandler(&ws);
     server.begin();
@@ -152,42 +157,57 @@ void loop() {
             case 'S':
                 if (satDown) break;
                 if (lastInput[1] == '\0') {
-                    motion.backward();
+                    if (movementType) {
+                        motion.rotation(1, 7);
+                        motion.forward();
+                    } else {
+                        motion.backward();
+                    }
                 } else if (lastInput[1] == 'E') {
-                    motion.backwardCurve(1, 0.5);
+                    if (movementType) {
+                        motion.rotation(1, 5);
+                        motion.forward();
+                    } else {
+                        motion.backwardCurve(1, 0.5);
+                    }
                 } else if (lastInput[1] == 'W') {
-                    motion.backwardCurve(-1, 0.5);
+                    if (movementType) {
+                        motion.rotation(-1, 5);
+                        motion.forward();
+                    } else {
+                        motion.backwardCurve(-1, 0.5);
+                    }
                 }
                 break;
             case 'E':
                 if (satDown || lastDists[2] < distSensorSide) break;
                 if (lastInput[1] == '\0') {
-                    motion.rotation(1, 4);
-                    motion.sideways(0);
+                    if (movementType) {
+                        motion.rotation(-1, 4);
+                        motion.sideways(0);
+                    } else {
+                        motion.sideways(0);
+                    }
                 }
                 break;
             case 'W':
                 if (satDown || lastDists[0] < distSensorSide) break;
                 if (lastInput[1] == '\0') {
-                    motion.rotation(-1, 4);
+                    if (movementType) {
+                        motion.rotation(1, 4);
                     motion.sideways(1);
+                    } else {
+                        //motion.sideways(1);
+                    }
                 }
                 break;
             case 'U': 
-                motion.standUp();
-                satDown = false;
-                break;
-            case 'D':
-                if (satDown) break;
-                motion.sitDown();
-                satDown = true;
-                break;
-            case 'C':
-                if (satDown) break;
-                if (lastInput[1]== 'R' && lastDists[2] >= distSensorSide) {
-                    motion.sideways(0);
-                } else if (lastInput[1]== 'L' && lastDists[0] >= distSensorSide) {
-                    motion.sideways(1);
+                if (satDown) {
+                    motion.standUp();
+                    satDown = false;
+                } else {
+                    motion.sitDown();
+                    satDown = true;
                 }
                 break;
             default:
@@ -365,7 +385,8 @@ void Sprint(const char* msg) {
 }
 
 void sendJson() {
-    String temp = String(R"({"act":")") + String(lastInput) + 
+    String temp = String(R"({"act":")") + String(lastInput) +
+        String(R"(", "movement_type":)") + String(movementType) + 
         String(R"(", "dist0":)") + String(lastDists[0]) + 
         String(R"(, "dist1":)") + String(lastDists[1]) + 
         String(R"(, "dist2":)") + String(lastDists[2]) +  String(R"(})");

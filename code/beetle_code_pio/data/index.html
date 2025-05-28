@@ -24,7 +24,7 @@
                 </div>
             </fieldset>
         </div>
-
+        <input type="button" value="change movement type" onclick="switchMessage()">
         <div id='js'>
             <h1>Joystick controls</h1>
             <div id="joyDiv" style="width:200px;height:200px;margin-bottom:20px;"></div>
@@ -56,7 +56,7 @@
         var qwertzDis = document.getElementById("qwertz");
         var tsgroup = document.getElementById("js");
         var sensorDist = [100,100,100]; // will be drawn, values should be between 0 to w/2 or h/2
-        
+        var movementType = true;
         
         var joy = new JoyStick('joyDiv');
         
@@ -70,6 +70,7 @@
             }
 
             sensorDist = [json.dist0, json.dist1, json.dist2];
+            movementType = json.movement_type;
         };
 
         // keyboard
@@ -105,13 +106,7 @@
                             dir = "NW";
                             break;
                         case "s": 
-                            dir = "UP";
-                        case "r":
-                            dir = "DO";
-                        case "g": 
-                            dir = "CR";
-                        case "f":
-                            dir = "CL";
+                            dir = "U";
                     }
                 } else {
                     switch (inField.value) {
@@ -141,12 +136,6 @@
                             break;
                         case "s": 
                             dir = "U";
-                        case "r":
-                            dir = "D";
-                        case "g": 
-                            dir = "CR";
-                        case "f":
-                            dir = "CL";
                     }
                 }
                 if (dir != "") { // only send if its a direction
@@ -162,6 +151,10 @@
             inPrint.innerHTML = "C";
             ws.send("C");
             keydown = false;
+        }
+
+        function switchMessage() {
+            ws.send("MC");
         }
 
         // joystick
