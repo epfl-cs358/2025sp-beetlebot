@@ -1,4 +1,5 @@
 #include "main.h"
+#include "sensors.h"
 #include <Adafruit_PWMServoDriver.h>
 #include "sensor.h"
 
@@ -95,7 +96,11 @@ void setup () {
     server.addHandler(&ws);
     server.begin();
     }
-    
+
+    //Sensors code
+    Wire.begin();
+    Wire.setClock(400000); // use 400 kHz I2C
+    forceSetup(); // after, the sensors should be all setup
 
     multiplexer.begin();
     multiplexer.setPWMFreq(60);
@@ -118,6 +123,19 @@ void loop() {
     sleep(1);
     ws.cleanupClients();
     sendJson();
+
+    for (int i = 0; i < 3; ++i) {
+        int test = checkSensor(i);
+        lastDists[i] = (test < 0) ? 0: test;
+    }
+    Serial.println("last Distances:");
+    Serial.print(" 0: ");
+    Serial.println(lastDists[0]);
+    Serial.print(" 1: ");
+    Serial.println(lastDists[1]);
+    Serial.print(" 2: ");
+    Serial.println(lastDists[2]);
+    handleSerialInput();
 
     if (WEB_SERIAL) {
         switch (lastInput[0]){
