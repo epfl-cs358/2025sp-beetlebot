@@ -1,11 +1,15 @@
 #include "main.h"
 #include <Adafruit_PWMServoDriver.h>
+#include "sensor.h"
 
 Adafruit_PWMServoDriver multiplexer = Adafruit_PWMServoDriver(0x40);
 AsyncWebServer server(80);
 String wifistr;
 char lastInput[3] = "C";
 int lastDists[3] = {0};
+bool satDown = true;
+int distSensorFront = 500; // 5 cm
+int distSensorSide = 700; // 7 cm
 
 // create an easy-to-use handler
 static AsyncWebSocketMessageHandler wsHandler;
@@ -111,16 +115,71 @@ bool isMultiplexerConnected(uint8_t address = 0x40) {
 }
 
 void loop() {
-    //sleep(1);
+    sleep(1);
     ws.cleanupClients();
     sendJson();
 
-    // switch (lastInput) {...}
-
-
-    if (!WEB_SERIAL) {
+    if (WEB_SERIAL) {
+        switch (lastInput[0]){
+            case 'N':
+                if (satDown || lastDists[1] < distSensorFront) break;
+                if (lastInput[1] == '\0') {
+                    motion.forward();
+                } else if (lastInput[1] == 'E') {
+                    motion.forwardCurve(1, 0.5);
+                } else if (lastInput[1] == 'W') {
+                    motion.forwardCurve(-1, 0.5);
+                }
+                break;
+            case 'S':
+                if (satDown) break;
+                if (lastInput[1] == '\0') {
+                    motion.backward();
+                } else if (lastInput[1] == 'E') {
+                    motion.backwardCurve(1, 0.5);
+                } else if (lastInput[1] == 'W') {
+                    motion.backwardCurve(-1, 0.5);
+                }
+                break;
+            case 'E':
+                if (satDown || lastDists[2] < distSensorSide) break;
+                if (lastInput[1] == '\0') {
+                    motion.rotation(1, 4);
+                    motion.sideways(0);
+                }
+                break;
+            case 'W':
+                if (satDown || lastDists[0] < distSensorSide) break;
+                if (lastInput[1] == '\0') {
+                    motion.rotation(-1, 4);
+                    motion.sideways(1);
+                }
+                break;
+            case 'U': 
+                motion.standUp();
+                satDown = false;
+                break;
+            case 'D':
+                if (satDown) break;
+                motion.sitDown();
+                satDown = true;
+                break;
+            case 'C':
+                if (satDown) break;
+                if (lastInput[1]== 'R' && lastDists[2] >= distSensorSide) {
+                    motion.sideways(0);
+                } else if (lastInput[1]== 'L' && lastDists[0] >= distSensorSide) {
+                    motion.sideways(1);
+                }
+                break;
+            default:
+                break;
+        }
+    } else {
         handleSerialInput();
     }
+
+    
 }
 
 void handleWifiSerialInput(const uint8_t *data, size_t len) {
@@ -185,9 +244,9 @@ void handleTextCommand(String input) {
     } else if(input == "sit up") {
         motion.standUp();
     } else if(input == "rot cw") {
-        motion.rotation(1);
+        motion.rotation(1, 5);
     } else if(input == "rot ccw") {
-        motion.rotation(-1);
+        motion.rotation(-1, 5);
     } else if(input == "forw cw") {
         motion.forwardCurve(1, 0.5);
     } else if(input == "forw ccw") {

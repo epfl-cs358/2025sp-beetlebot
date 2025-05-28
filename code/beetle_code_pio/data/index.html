@@ -104,6 +104,14 @@
                         case "q":
                             dir = "NW";
                             break;
+                        case "s": 
+                            dir = "UP";
+                        case "r":
+                            dir = "DO";
+                        case "g": 
+                            dir = "CR";
+                        case "f":
+                            dir = "CL";
                     }
                 } else {
                     switch (inField.value) {
@@ -131,6 +139,14 @@
                         case "a":
                             dir = "NW";
                             break;
+                        case "s": 
+                            dir = "U";
+                        case "r":
+                            dir = "D";
+                        case "g": 
+                            dir = "CR";
+                        case "f":
+                            dir = "CL";
                     }
                 }
                 if (dir != "") { // only send if its a direction

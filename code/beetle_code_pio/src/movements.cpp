@@ -29,12 +29,12 @@ void movements::standUp() {
         {90, 115, 100}
     };
     int sit2[6][3] = {
-        {90, 50, 145},
-        {90, 50, 145},
-        {90, 50, 145},
-        {90, 50, 145},
-        {90, 50, 145},
-        {90, 50, 145}
+        {standAngle[Coxa], standAngle[Femur], standAngle[Tibia]},
+        {standAngle[Coxa], standAngle[Femur], standAngle[Tibia]},
+        {standAngle[Coxa], standAngle[Femur], standAngle[Tibia]},
+        {standAngle[Coxa], standAngle[Femur], standAngle[Tibia]},
+        {standAngle[Coxa], standAngle[Femur], standAngle[Tibia]},
+        {standAngle[Coxa], standAngle[Femur], standAngle[Tibia]}
     };
 
     interpolateAngle(legs, sit1, stepCounter);
@@ -42,6 +42,28 @@ void movements::standUp() {
 
 }
 
+void movements::sitDown() {
+    initializeAllServos(standAngle[Coxa], standAngle[Femur], standAngle[Tibia]);
+    int sit2[6][3] = {
+        {90, 115, 100},
+        {90, 115, 100},
+        {90, 115, 100},
+        {90, 115, 100},
+        {90, 115, 100},
+        {90, 115, 100}
+    };
+    int sit1[6][3] = {
+        {sitAngle[Coxa], sitAngle[Femur], sitAngle[Tibia]},
+        {sitAngle[Coxa], sitAngle[Femur], sitAngle[Tibia]},
+        {sitAngle[Coxa], sitAngle[Femur], sitAngle[Tibia]},
+        {sitAngle[Coxa], sitAngle[Femur], sitAngle[Tibia]},
+        {sitAngle[Coxa], sitAngle[Femur], sitAngle[Tibia]},
+        {sitAngle[Coxa], sitAngle[Femur], sitAngle[Tibia]}
+    };
+
+    interpolateAngle(legs, sit1, stepCounter);
+    interpolateAngle(legs, sit2, stepCounter);
+}
 //helper for a tripod gait
 void movements::angleTab2 (int angles[6][3], int walk, int group2 [4][3], int group1 [4][3]) {
     for (int j =0; j<3; ++j) {
@@ -104,11 +126,11 @@ void movements::angleTabCorner (int angles[6][3], int walk, int group2 [4][3], i
         }
     }
 }
-void movements::rotation(int way){
+void movements::rotation(int way, int cycle){
     initializeAllServos(standAngle[Coxa], standAngle[Femur], standAngle[Tibia]);
     int coxaWideOffset = 25;
     int coxaNarrowOffset = 10;
-    int cycleNumber = 5;
+    int cycleNumber = cycle;
 
     (way != -1 || way != 1) ? way = 1 : way; //if its neither ig we can make it turn clockwise
     
@@ -259,11 +281,65 @@ void movements::forward() {
     }
 }
 
+void movements::backward() {
+    initializeAllServos(standAngle[Coxa], standAngle[Femur], standAngle[Tibia]);
+    int cycle = 6;
+    //walk 1-4
+    int group1[4][3] = {
+        {70, 50, 145},
+        {90, 50, 145},
 
+        {110, 50, 145},
+        {90, 95, 145}
+    };
 
+    int group2[4][3] = {
+        {110, 50, 145},
+        {90, 95, 145},
+
+        {70, 50, 145},
+        {90, 50, 145}
+    };
+
+    int  walk [6][3];
+
+    for (int i = 0; i< cycle; ++i) {
+        if (i == 0) { //init for group1 : starts cycle in the air
+            angleTab2(walk, 3, group2, group1);
+            interpolateAngle(legs, walk, stepCounter);
+        } else if (i == cycle - 1) { //restore for group1 : return to ground
+            int standing [6][3]= {
+                {90, 50, 145},
+                {90, 50, 145},
+                {90, 50, 145},
+                {90, 50, 145},
+                {90, 50, 145},
+                {90, 50, 145}
+            };
+            interpolateAngle(legs, standing, stepCounter);
+        } else {
+            angleTab2(walk, 0, group2, group1);
+            //walk1
+            interpolateAngle(legs, walk, stepCounter); 
+            
+            angleTab2(walk, 1, group2, group1);
+            //walk2
+            interpolateAngle(legs, walk, stepCounter); 
+        
+            angleTab2(walk, 2, group2, group1);
+            //walk 3
+            interpolateAngle(legs, walk, stepCounter); 
+
+            angleTab2(walk, 3, group2, group1);
+            //walk4
+            interpolateAngle(legs, walk, stepCounter);  
+
+        }
+    }
+}
 //we turn while forward, -1 ou 1 for way
 //turn is a turning factor thats 0 < turn < 1
-void movements::forwardCurve(int way, float turn){
+void movements::forwardCurve(int way, float turn, int cycle){
     if (turn > 1) turn = 1;
     if (turn < 0) turn = 0;
     (way != -1 || way != 1) ? way = 1 : way; //if its neither ig we can make it turn clockwise
@@ -271,7 +347,7 @@ void movements::forwardCurve(int way, float turn){
     initializeAllServos(standAngle[Coxa], standAngle[Femur], standAngle[Tibia]);
     int coxaWideOffset = 25;
     int coxaNarrowOffset = 10;
-    int cycleNumber = 5;
+    int cycleNumber = cycle;
 
     //gait definition copied from forward()
     int group1[4][3] = {
@@ -337,7 +413,79 @@ void movements::forwardCurve(int way, float turn){
     
 }
 
+void movements::backwardCurve(int way, float turn, int cycle){
+    if (turn > 1) turn = 1;
+    if (turn < 0) turn = 0;
+    (way != -1 || way != 1) ? way = 1 : way;
 
+    initializeAllServos(standAngle[Coxa], standAngle[Femur], standAngle[Tibia]);
+    int coxaWideOffset = 25;
+    int coxaNarrowOffset = 10;
+    int cycleNumber = cycle;
+
+    int group1[4][3] = {
+        {70, 50, 145},
+        {90, 50, 145},
+
+        {110, 50, 145},
+        {90, 95, 145}
+    };
+    int group2[4][3] = {
+        {110, 50, 145},
+        {90, 95, 145},
+
+        {70, 50, 145},
+        {90, 50, 145}
+    };
+    
+    const int coxaWide  = 25;
+    const int coxaNarrow= 10;
+    int rot_g1[4][3] = {
+        {90+way*(coxaWide/2), 95,145},
+        {90+way* coxaWide   , 50,145},
+        {90-way*(coxaWide/4), 50,145},
+        {90-way*(coxaWide/2), 50,145}
+    };
+    int rot_g2[4][3] = {
+        {90-way*(coxaWide/4), 50,145},
+        {90-way*(coxaWide/2), 50,145},
+        {90+way*(coxaWide/2),95,145},
+        {90+way* coxaWide   , 50,145}
+    };
+    int rot_mg1[4][3] = {
+        {90+way*(coxaNarrow/2),95,145},
+        {90+way* coxaNarrow   , 50,145},
+        {90-way*(coxaNarrow/2), 50,145},
+        {90-way* coxaNarrow   , 50,145}
+    };
+    int rot_mg2[4][3] = {
+        {90-way*(coxaNarrow/2), 50,145},
+        {90-way* coxaNarrow   , 50,145},
+        {90+way*(coxaNarrow/2),95,145},
+        {90+way* coxaNarrow   , 50,145}
+    };
+
+    
+    //thy work buffers
+    int walkFwd [6][3]; //forward table
+    int walkRot [6][3]; //rotation table for 1 step
+    int walkMix [6][3]; //mixed output of forward and rotation
+
+    //il y a 4 phases de marche, chaque phase correspond à un sous-étape
+    //1 lift tripod A, swing forward
+    //2 lift tripod B, swing forward
+    //3 lower tripod A, push ground
+    //4 lower tripod B, push ground
+    const uint8_t SUBSTEPS = 4;
+
+    for (uint8_t phase = 0; phase < SUBSTEPS; ++phase) {
+        angleTab2(walkFwd, phase, group2, group1);
+        angleTab4(walkRot, phase, rot_g1, rot_g2, rot_mg1, rot_mg2);
+        mixTables(walkMix, walkFwd, walkRot, turn * way);
+        interpolateAngle(legs, walkMix, stepCounter);
+    }
+    
+}
 
 void movements::sideways(int direction){
     // direction = 1 for left, 0 for right
@@ -398,9 +546,6 @@ void movements::sideways(int direction){
         }
 }
     
-
-
-
 
 void movements::interpolateAngle(leg* body[6], int finalAngles[6][3], int stepNumber) {
     

@@ -6,11 +6,19 @@ class movements {
     public: 
         //simple walk
         void forward();
-        void rotation(int way);
-        void sideways(int direction);
-        void forwardCurve(int way, float turn);
+        void backward();
 
+        //turns
+        void rotation(int way, int cycle = 5);
+        void forwardCurve(int way, float turn, int cycle = 5);
+        void backwardCurve (int way, float turn, int cycle = 5);
+
+
+        void sideways(int direction);
+
+        //setups
         void standUp();
+        void sitDown();
 
         //necessary for smoother movements : interpolate the angles to make sure each leg moves together
         void interpolateAngle(leg* body[6], int finalAngles[6][3], int stepNumber);
