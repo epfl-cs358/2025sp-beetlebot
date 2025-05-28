@@ -18,6 +18,8 @@ It interacts with its surrounding with three sensors posted on the front and the
 
 ## Hardware & Design Specifications
 
+[View 3D Model](documentation/full_bot.stl)
+
 @Adele
 Details about the size, weight and other components in the beetlebot. Comments about why certain choices were made (in regards to design, placement of components etc)
 
