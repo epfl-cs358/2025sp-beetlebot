@@ -86,12 +86,12 @@ void movements::angleTab2 (int angles[6][3], int walk, int group2 [4][3], int gr
 }
 
 //middle legs have less range of coxa movements as front and back, so needs to rotate less
-void movements::angleTab4(int angles[6][3], int walk, int group1 [4][3], int group2[4][3], 
-            int middleGroup1 [4][3], int middleGroup2 [4][3]) {
+void movements::angleTab4(int angles[8][3], int walk, int group1 [8][3], int group2[8][3], 
+            int middleGroup1 [8][3], int middleGroup2 [8][3]) {
         for (int j =0; j<3; ++j) {
             if (j == 0) {
-                angles[0][j] = group1[walk][j]; // lf
-                angles[1][j] = group2[walk][j]; // rf
+                angles[0][j] = 180 - group1[walk][j]; // lf (have to do 180 - angle)
+                angles[1][j] = 180 - group2[walk][j]; // rf
                 angles[2][j] = middleGroup2[walk][j]; // lm
                 angles[3][j] = middleGroup1[walk][j]; // rm
                 angles[4][j] = group1[walk][j]; //lb
@@ -403,12 +403,13 @@ void movements::forwardCurve(int way, float turn, int cycle){
     //3 lower tripod A, push ground
     //4 lower tripod B, push ground
     const uint8_t SUBSTEPS = 4;
-
-    for (uint8_t phase = 0; phase < SUBSTEPS; ++phase) {
+    for (int i = 0; i< 5; ++i){
+        for (uint8_t phase = 0; phase < SUBSTEPS; ++phase) {
         angleTab2(walkFwd, phase, group2, group1);
         angleTab4(walkRot, phase, rot_g1, rot_g2, rot_mg1, rot_mg2);
         mixTables(walkMix, walkFwd, walkRot, turn * way);
         interpolateAngle(legs, walkMix, stepCounter);
+    }
     }
     
 }
@@ -490,33 +491,49 @@ void movements::backwardCurve(int way, float turn, int cycle){
 void movements::sideways(int direction){
     // direction = 1 for left, 0 for right
     initializeAllServos(standAngle[Coxa], standAngle[Femur], standAngle[Tibia]);
-    int cycle = 5;
-    int group1[4][3] = { // lf and lb
-        {90, 100, 140},
-        {60, 70, 135},
-        {60, 70, 135},
-        {60, 70, 135}
+    int cycle = 5; // coxa angles set for front ones, back have to do -180
+    int group1[8][3] = { // lf and lb
+        {90, 50, 145}, // 1st part
+        {90, 50, 145},
+        {115, 65, 145}, // 2nd part
+        {135, 45, 140},
+        {115, 50, 140}, // 3rd part
+        {90, 50, 145},
+        {90, 50, 145}, // 4th part
+        {90, 50, 145}
     };
-    int group2[4][3] = { // rf and rb
-        {90, 70, 145},
-        {75, 100, 140},
-        {60, 70, 135},
-        {60, 70, 135}
+    int group2[8][3] = { // rf and rb
+        {90, 50, 145}, // 1st part
+        {90, 50, 145},
+        {115, 50, 140}, // 2nd part
+        {135, 45, 140},
+        {115, 65, 145}, // 3rd part
+        {90, 50, 145},
+        {90, 50, 145}, // 4th part
+        {90, 50, 145}
     };
-    int middleGroup2[4][3] = { // lm
-        {90, 70, 145},
-        {90, 70, 145},
-        {90, 100, 140},
-        {90, 70, 135}
+    int middleGroup2[8][3] = { // lm
+        {90, 70, 135}, // 1st part
+        {90, 50, 125},
+        {90, 50, 135}, // 2nd part
+        {90, 50, 145},
+        {90, 70, 145}, // 3rd part
+        {90, 50, 145},
+        {90, 50, 145}, // 4th part
+        {90, 50, 145}
     };
-    int middleGroup1[4][3] = { // rm
-        {90, 100, 140},
-        {90, 70, 135},
-        {90, 70, 135},
-        {90, 70, 135}
+    int middleGroup1[8][3] = { // rm
+        {90, 50, 145}, // 1st part
+        {90, 50, 145},
+        {90, 70, 145}, // 2nd part
+        {90, 50, 145},
+        {90, 50, 135}, // 3rd part
+        {90, 50, 125},
+        {90, 70, 135}, // 4th part
+        {90, 50, 145}
     };
     
-    int crabWalk [6][3];
+    int crabWalk [8][3];
     for (int i = 0; i<cycle; i++) {
         if (direction == 1) { //left 
             angleTab4(crabWalk, 0, group1, group2, middleGroup1, middleGroup2);
