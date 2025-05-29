@@ -22,6 +22,8 @@ It interacts with its surrounding with three sensors posted on the front and the
 
 @Adele
 Details about the size, weight and other components in the beetlebot. Comments about why certain choices were made (in regards to design, placement of components etc)
+
+The goal of our 3D design was to keep it lightweight, as compact as possible, and avoid any unnecessary plastic. This led to minimalistic legs with sturdy joints, using just enough material to hold the servos tightly, all while eliminating unwanted movement and making sure the servos weren’t supporting their own weight. The base was designed to support the heaviest items on the bottom for better stability, while the lid holds the materials that require the most convenient access. This resulted in having 6 servos and the battery, along with its protection board and the buck converter, on the bottom as they hold the most weight. The ESP32 and the servo multiplexer were placed on top as we often needed to change the ESP's or the multiplexer's cabling. The 6 servos that served as coxas were placed downwards so they could be directly screwed on the floor, which wouldn't require any unecessary additional structure.
 -legs design: short, light and minimalistic
 - base design: made with lots of holes to make it lighter, made so we can screw the base servos directly 
 
