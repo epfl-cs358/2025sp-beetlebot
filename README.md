@@ -20,12 +20,13 @@ It interacts with its surrounding with three sensors posted on the front and the
 
 [View 3D Model](documentation/full_bot.stl)
 
-@Adele
-Details about the size, weight and other components in the beetlebot. Comments about why certain choices were made (in regards to design, placement of components etc)
+The goal of our 3D design was to keep it lightweight, as compact as possible, and avoid any unnecessary plastic. This led to minimalistic legs with sturdy joints, using just enough material to hold the servos tightly, all while eliminating unwanted movement and making sure the servos weren’t supporting their own weight. The legs were also made in such a way that they could fold on themselves and go the most downwards possible. Indeed, the more the legs aligned under the body, the less force the servos would require to hold the whole hexapod. Standing up with your legs far apart is much harder than standing up with your legs close together. Being able to fold on themselves is a very important aspect that was needed when the hexapod was standing up: for example, if you come out of a swimming pool with your arms far from your body, you will have a hard time getting up, while if theyre are close to it, it will be much easier.
 
-The goal of our 3D design was to keep it lightweight, as compact as possible, and avoid any unnecessary plastic. This led to minimalistic legs with sturdy joints, using just enough material to hold the servos tightly, all while eliminating unwanted movement and making sure the servos weren’t supporting their own weight. The base was designed to support the heaviest items on the bottom for better stability, while the lid holds the materials that require the most convenient access. This resulted in having 6 servos and the battery, along with its protection board and the buck converter, on the bottom as they hold the most weight. The ESP32 and the servo multiplexer were placed on top as we often needed to change the ESP's or the multiplexer's cabling. The 6 servos that served as coxas were placed downwards so they could be directly screwed on the floor, which wouldn't require any unecessary additional structure.
--legs design: short, light and minimalistic
-- base design: made with lots of holes to make it lighter, made so we can screw the base servos directly 
+The base was designed to support the heaviest items on the bottom for better stability, while the lid holds the materials that require the most convenient access. This resulted in having 6 servos and the battery, along with its protection board and the buck converter, on the bottom as they hold the most weight. The ESP32 and the servo multiplexer were placed on top as we often needed to change the ESP's or the multiplexer's cabling. The 6 servos that served as coxas were placed downwards and on the base so they wouldnt require any unecessary additional structure by being directly screwed on the floor of the base.
+Finally, the base was designed with many holes to lighten it.
+The design of the
+
+The final weight of the hexapod is XXXXXXXXXX kg with an approximate size of XX x XX x XX cm³
 
 
 Add potentially BoM and schematics and wiring
