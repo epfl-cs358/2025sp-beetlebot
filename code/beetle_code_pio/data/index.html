@@ -10,7 +10,7 @@
         <div id='kb'>
             <h1>Keyboard controls</h1>
             <input id='box' type='text' value="" oninput='inputfunc()' onkeyup='keyupfunc()' maxlength='1'>
-            <p>Use the keys around s like the joystick!</p>
+            <p>Use the keys around  <strong>S</strong> like the joystick, and S to sit/stand ! </p>
             <fieldset>
                 <legend>Select your keyboard disposition:</legend>
                 <div>
@@ -24,7 +24,12 @@
                 </div>
             </fieldset>
         </div>
+
         <input type="button" value="change movement type" onclick="switchMessage()">
+        <p id="movementStatus">Movement type: Rotational</p>
+        <input type="button" value="toggle sensor detection" onclick="sensorMessage()">
+        <p id="sensorStatus">Sensor detection: Off</p>
+
         <div id='js'>
             <h1>Joystick controls</h1>
             <div id="joyDiv" style="width:200px;height:200px;margin-bottom:20px;"></div>
@@ -55,8 +60,9 @@
         var kbgroup = document.getElementById("kb");
         var qwertzDis = document.getElementById("qwertz");
         var tsgroup = document.getElementById("js");
-        var sensorDist = [100,100,100]; // will be drawn, values should be between 0 to w/2 or h/2
+        var sensorDist = [200,200,200]; // will be drawn, values should be between 0 to w/2 or h/2
         var movementType = true;
+        var sensorDetect = false;
         
         var joy = new JoyStick('joyDiv');
         
@@ -71,6 +77,10 @@
 
             sensorDist = [json.dist0, json.dist1, json.dist2];
             movementType = json.movement_type;
+            sensorDetect = json.sensorDe;
+
+            document.getElementById("movementStatus").innerText = "Movement type: " + (movementType ? "Rotational" : "Translational");
+            document.getElementById("sensorStatus").innerText = "Sensor detection: " + (sensorDetect ? "On" : "Off");
         };
 
         // keyboard
@@ -155,6 +165,10 @@
 
         function switchMessage() {
             ws.send("MC");
+        }
+
+        function sensorMessage() {
+            ws.send("DE");
         }
 
         // joystick

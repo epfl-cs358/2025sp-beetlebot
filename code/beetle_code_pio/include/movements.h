@@ -1,7 +1,7 @@
 #include "data.h"
 #include "leg.h"
 
-
+const int midStand [3] = {90, 115, 100};
 class movements {
     public: 
         //simple walk
@@ -10,8 +10,8 @@ class movements {
 
         //turns
         void rotation(int way, int cycle = 5);
-        void forwardCurve(int way, float turn, int cycle = 5);
-        void backwardCurve (int way, float turn, int cycle = 5);
+        void forwardCurve(int way, float turn, int cycle = 4);
+        void backwardCurve (int way, float turn, int cycle = 4);
 
 
         void sideways(int direction);
@@ -29,6 +29,8 @@ class movements {
         void angleTab4(int angles[6][3], int walk, int group1 [4][3], int group2[4][3], 
             int middleGroup1 [4][3], int middleGroup2 [4][3]);
         void angleTabCorner (int angles[6][3], int walk, int group1 [4][3], int group2 [4][3]);
+        void angleTabSide(int angles[6][3], int walk, int group1 [8][3], int group2[8][3], 
+            int middleGroup1 [8][3], int middleGroup2 [8][3]);
 
         movements(leg lf, leg rf, leg lm, leg rm, leg lb, leg rb, Adafruit_PWMServoDriver &multiplexer, int stepCounter)
         : multiplexer(multiplexer), lf(lf), rf(rf), lm(lm), rm(rm), lb(lb), rb(rb), stepCounter(stepCounter)

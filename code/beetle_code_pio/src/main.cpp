@@ -8,11 +8,12 @@ AsyncWebServer server(80);
 String wifistr;
 char lastInput[3] = "C";
 int lastDists[3] = {0};
-bool satDown = true;
-int distSensorFront = 500; // 5 cm
-int distSensorSide = 700; // 7 cm
+bool satDown = false;
+int distSensorMin = 0; //
+int distSensorMax = 100; 
 bool movementType = true; // if sets to true, the robot rotates on itself to get to the direction
 //false : goes in the direction without rotating, ie crabwalk / backwards
+bool sensorDetect = false;
 
 // create an easy-to-use handler
 static AsyncWebSocketMessageHandler wsHandler;
@@ -92,8 +93,10 @@ void setup () {
             request->send(SPIFFS, "/bot.png","image/png");});
 
         wsHandler.onMessage([](AsyncWebSocket *server, AsyncWebSocketClient *client, const uint8_t *data, size_t len) {
-            if (strcmp((const char*) data, "MC")) {
+            if (strcmp((const char*) data, "MC") == 0) {
                 movementType = !movementType;
+            } else if (strcmp((const char*) data, "DE") == 0) {
+                sensorDetect = !sensorDetect;
             } else memcpy(lastInput, data, 2);
         });
 
@@ -106,6 +109,7 @@ void setup () {
     Wire.begin();
     Wire.setClock(400000); // use 400 kHz I2C
     forceSetup(); // after, the sensors should be all setup
+    Serial.println("Sensors connected successfully! ");
 
     multiplexer.begin();
     multiplexer.setPWMFreq(60);
@@ -133,25 +137,29 @@ void loop() {
         int test = checkSensor(i);
         lastDists[i] = (test < 0) ? 0: test;
     }
-    /*Serial.println("last Distances:");
+
+    
+    Serial.println("last Distances:");
     Serial.print(" 0: ");
     Serial.println(lastDists[0]);
     Serial.print(" 1: ");
     Serial.println(lastDists[1]);
     Serial.print(" 2: ");
-    Serial.println(lastDists[2]);*/
-    handleSerialInput();
+    Serial.println(lastDists[2]);
+    
+    
+    //handleSerialInput();
 
     if (WEB_SERIAL) {
         switch (lastInput[0]){
             case 'N':
-                if (satDown || lastDists[1] < distSensorFront) break;
+                if (satDown || (sensorDetect && lastDists[1]<=distSensorMax && lastDists[1]>distSensorMin)) break;
                 if (lastInput[1] == '\0') {
                     motion.forward();
                 } else if (lastInput[1] == 'E') {
                     motion.forwardCurve(1, 0.5);
                 } else if (lastInput[1] == 'W') {
-                    motion.forwardCurve(-1, 0.5);
+                    motion.forwardCurve(0, 0.5);
                 }
                 break;
             case 'S':
@@ -159,55 +167,50 @@ void loop() {
                 if (lastInput[1] == '\0') {
                     if (movementType) {
                         motion.rotation(1, 7);
-                        motion.forward();
                     } else {
                         motion.backward();
                     }
                 } else if (lastInput[1] == 'E') {
                     if (movementType) {
                         motion.rotation(1, 5);
-                        motion.forward();
                     } else {
                         motion.backwardCurve(1, 0.5);
                     }
                 } else if (lastInput[1] == 'W') {
                     if (movementType) {
-                        motion.rotation(-1, 5);
-                        motion.forward();
+                        motion.rotation(0, 5);
                     } else {
-                        motion.backwardCurve(-1, 0.5);
+                        motion.backwardCurve(0, 0.5);
                     }
                 }
                 break;
             case 'E':
-                if (satDown || lastDists[2] < distSensorSide) break;
+                if (satDown || (sensorDetect && lastDists[0]<=distSensorMax && lastDists[0]>distSensorMin)) break;
                 if (lastInput[1] == '\0') {
                     if (movementType) {
-                        motion.rotation(-1, 4);
-                        motion.sideways(0);
+                        motion.rotation(0, 4);
                     } else {
                         motion.sideways(0);
                     }
                 }
                 break;
             case 'W':
-                if (satDown || lastDists[0] < distSensorSide) break;
+                if (satDown || (sensorDetect && lastDists[2]<=distSensorMax && lastDists[2]>distSensorMin)) break;
                 if (lastInput[1] == '\0') {
                     if (movementType) {
                         motion.rotation(1, 4);
-                    motion.sideways(1);
                     } else {
-                        //motion.sideways(1);
+                        motion.sideways(1);
                     }
                 }
                 break;
             case 'U': 
                 if (satDown) {
                     motion.standUp();
-                    satDown = false;
+                    satDown = !satDown;
                 } else {
                     motion.sitDown();
-                    satDown = true;
+                    satDown = !satDown;
                 }
                 break;
             default:
@@ -281,22 +284,26 @@ void handleTextCommand(String input) {
         motion.initializeAllServos(sitAngle[Coxa], sitAngle[Femur], sitAngle[Tibia]);
     } else if(input == "test set") {
         motion.initializeAllServos(setAngle[Coxa], setAngle[Femur], setAngle[Tibia]);
-    } else if(input == "sit up") {
+    } else if(input == "stand up") {
         motion.standUp();
+    } else if (input == "sit down") {
+        motion.sitDown();
     } else if(input == "rot cw") {
         motion.rotation(1, 5);
     } else if(input == "rot ccw") {
-        motion.rotation(-1, 5);
+        motion.rotation(0, 5);
     } else if(input == "forw cw") {
-        motion.forwardCurve(1, 0.7, 5);
+        motion.forwardCurve(1, 0.7);
     } else if(input == "forw ccw") {
-        motion.forwardCurve(-1, 0.5, 5);
+        motion.forwardCurve(0, 0.5);
     } else if(input == "back ccw") {
-        motion.backwardCurve(-1, 0.5, 5);
-    } else if(input == "side left") {
-        motion.sideways(-1);
-    } else if(input == "side right") {
+        motion.backwardCurve(0, 0.5);
+    } else if(input == "back cw") {
+        motion.backwardCurve(1, 0.5);
+    } else if(input == "left") {
         motion.sideways(1);
+    } else if(input == "right") {
+        motion.sideways(0);
     } else {
         Sprintln(PROGMEM "Unknown command. Type 'help' for a list of commands.");
     }
@@ -361,12 +368,15 @@ void printHelp() {
     Sprintln(PROGMEM "\nAdvanced commands:");
     Sprintln(PROGMEM "stand - Beetlebot in stand position [not a smooth movement]");
     Sprintln(PROGMEM "sit - Beetlebot in sit position [not a smooth movement]");
-    Sprintln(PROGMEM "sit up - Beetlebot from sit to stand");
+    Sprintln(PROGMEM "stand up - Beetlebot from sit to stand");
+    Sprintln(PROGMEM "sit down - Beetlebot from stand to sit");
     Sprintln(PROGMEM "forward - tripod");
     Sprintln(PROGMEM "rot cw - clockwise tripod gait rotation");
     Sprintln(PROGMEM "rot ccw - counterclockwise tripod gait rotation");
     Sprintln(PROGMEM "forw cw - forward curve clockwise tripod gait");
     Sprintln(PROGMEM "forw ccw - forward curve counterclockwise tripod gait");
+    Sprintln(PROGMEM "back cw - backward curve clockwise tripod gait");
+    Sprintln(PROGMEM "back ccw - backward curve counterclockwise tripod gait");
     Sprintln(PROGMEM "side left - sideways tripod gait to the left");
     Sprintln(PROGMEM "side right - sideways tripod gait to the right");
 }
@@ -391,6 +401,7 @@ void Sprint(const char* msg) {
 void sendJson() {
     String temp = String(R"({"act":")") + String(lastInput) +
         String(R"(", "movement_type":)") + String(movementType) + 
+        String(R"(", "sensorDe":)") + String(sensorDetect) + 
         String(R"(", "dist0":)") + String(lastDists[0]) + 
         String(R"(, "dist1":)") + String(lastDists[1]) + 
         String(R"(, "dist2":)") + String(lastDists[2]) +  String(R"(})");

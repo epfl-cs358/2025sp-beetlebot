@@ -15,7 +15,7 @@ enum legIndex {
     LF = 0, RF = 1, LM = 2, RM = 3, LB = 4, RB = 5
 };
 
-const int sitAngle [3] = {90, 150, 35};
+const int sitAngle [3] = {90, 150, 145};
 const int setAngle [3] = {90, 150, 90};
 const int standAngle [3] = {90, 50, 145};
 
