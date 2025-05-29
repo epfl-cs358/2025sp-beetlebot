@@ -22,6 +22,9 @@ It interacts with its surrounding with three sensors posted on the front and the
 
 @Adele
 Details about the size, weight and other components in the beetlebot. Comments about why certain choices were made (in regards to design, placement of components etc)
+-legs design: short, light and minimalistic
+- base design: made with lots of holes to make it lighter, made so we can screw the base servos directly 
+
 
 Add potentially BoM and schematics and wiring
 
@@ -35,7 +38,9 @@ everything about the web serial and sensor handling
 ## Challenges
 
 - Hardware:
-    - For 3D design, the challenge was to make something not too big, that would hold well, that would make enough sense and be light enough so that all the servos could hold its weight and move in harmony.
+    - The challenges for the CAD was mainly the leg: We initially had a first design where the leg was unecessary long and heavy, with an added effect of the servos having to handle their own weight along with the rest of the leg. We did not realise immediately the importance of the design, thinking the servos would be able to hold it in any case. In fact, even with our now optimised design, they still have some struggly carrying the whole weight. The leg being too long was also problematic because this  It took some time but we finally managed to create a minimalistric design where the servos were tightly screwed to their joint. In consequence, the legs were much lighter and the servos did not have to hold their own weight anymore.
+    - Another hardware challenge was the cable management. Indeed, we were facing a trio of cables for each servos, along with cables for the multiplexer, the battery, the sensors and the ESP32, totalling with a strong ~50 cables. We managed to make some of them fit inside the base, but the biggest problems was the cables that had to stay outside of the base since the multiplexer was on the lid. We ended up tying the servo cables together so they would not be everywhere around our hexapod.
+      
 - Software:
     - IK
 
