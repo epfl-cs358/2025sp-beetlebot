@@ -44,6 +44,29 @@ void movements::standUp() {
     interpolateAngle(legs, stand1, stepCounter);
     interpolateAngle(legs, stand2, stepCounter);
 
+    //check that every leg is where it needs to be:
+    int lift [6][3];
+    int angleLift[3] = {90, 70, 145};
+    for (int i = 0; i<6; ++i) {
+
+        angleTabStand(lift, i, angleLift);
+        interpolateAngle(legs, lift, stepCounter);
+    }
+
+}
+
+void movements::angleTabStand (int angles[6][3], int leg, int angleLift [3]) {
+    for (int i = 0; i<6; ++i) {
+        if (leg == i) {
+            angles[leg][0] = angleLift[0];
+            angles[leg][1] = angleLift[1];
+            angles[leg][2] = angleLift[2];
+        } else {
+            angles[i][0] = standAngle[0];
+            angles[i][1] = standAngle[1];
+            angles[i][2] = standAngle[2];
+        }
+    }
 }
 
 void movements::sitDown() {

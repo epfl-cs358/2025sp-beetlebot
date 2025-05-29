@@ -10,7 +10,7 @@ char lastInput[3] = "C";
 int lastDists[3] = {0};
 bool satDown = false;
 int distSensorMin = 0; //
-int distSensorMax = 100; 
+int distSensorMax = 150; 
 bool movementType = true; // if sets to true, the robot rotates on itself to get to the direction
 //false : goes in the direction without rotating, ie crabwalk / backwards
 bool sensorDetect = false;
@@ -40,7 +40,7 @@ unsigned int offsetAngle = 5;
 static bool multiplexerOk = true;
 static unsigned long lastCheck = 0;
 
-movements motion = movements(lf, rf, lm, rm, lb,rb, multiplexer, 20);
+movements motion = movements(lf, rf, lm, rm, lb,rb, multiplexer, 15);
 leg *current = motion.current;
 
 String processor(const String& var){
@@ -172,13 +172,13 @@ void loop() {
                     }
                 } else if (lastInput[1] == 'E') {
                     if (movementType) {
-                        motion.rotation(1, 5);
+                        motion.rotation(1, 4);
                     } else {
                         motion.backwardCurve(1, 0.5);
                     }
                 } else if (lastInput[1] == 'W') {
                     if (movementType) {
-                        motion.rotation(0, 5);
+                        motion.rotation(0, 4);
                     } else {
                         motion.backwardCurve(0, 0.5);
                     }
@@ -188,7 +188,7 @@ void loop() {
                 if (satDown || (sensorDetect && lastDists[0]<=distSensorMax && lastDists[0]>distSensorMin)) break;
                 if (lastInput[1] == '\0') {
                     if (movementType) {
-                        motion.rotation(0, 4);
+                        motion.rotation(1, 4);
                     } else {
                         motion.sideways(0);
                     }
@@ -198,7 +198,7 @@ void loop() {
                 if (satDown || (sensorDetect && lastDists[2]<=distSensorMax && lastDists[2]>distSensorMin)) break;
                 if (lastInput[1] == '\0') {
                     if (movementType) {
-                        motion.rotation(1, 4);
+                        motion.rotation(0, 4);
                     } else {
                         motion.sideways(1);
                     }

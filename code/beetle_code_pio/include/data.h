@@ -35,7 +35,7 @@ const int rfFOffset = -5;
 const int rfTOffset = 0;
 
 const int lmCOffset = 0;
-const int lmFOffset = 0;
+const int lmFOffset = -5;
 const int lmTOffset = -5;
 
 const int rmCOffset = 0;

@@ -31,6 +31,7 @@ class movements {
         void angleTabCorner (int angles[6][3], int walk, int group1 [4][3], int group2 [4][3]);
         void angleTabSide(int angles[6][3], int walk, int group1 [8][3], int group2[8][3], 
             int middleGroup1 [8][3], int middleGroup2 [8][3]);
+        void angleTabStand (int angles[6][3], int leg, int angleLift [3]);
 
         movements(leg lf, leg rf, leg lm, leg rm, leg lb, leg rb, Adafruit_PWMServoDriver &multiplexer, int stepCounter)
         : multiplexer(multiplexer), lf(lf), rf(rf), lm(lm), rm(rm), lb(lb), rb(rb), stepCounter(stepCounter)
