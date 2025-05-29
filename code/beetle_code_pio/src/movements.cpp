@@ -86,12 +86,12 @@ void movements::angleTab2 (int angles[6][3], int walk, int group2 [4][3], int gr
 }
 
 //middle legs have less range of coxa movements as front and back, so needs to rotate less
-void movements::angleTab4(int angles[8][3], int walk, int group1 [8][3], int group2[8][3], 
-            int middleGroup1 [8][3], int middleGroup2 [8][3]) {
+void movements::angleTab4(int angles[6][3], int walk, int group1 [4][3], int group2[4][3], 
+            int middleGroup1 [4][3], int middleGroup2 [4][3]) {
         for (int j =0; j<3; ++j) {
             if (j == 0) {
-                angles[0][j] = 180 - group1[walk][j]; // lf (have to do 180 - angle)
-                angles[1][j] = 180 - group2[walk][j]; // rf
+                angles[0][j] = group1[walk][j]; // lf
+                angles[1][j] = group2[walk][j]; // rf
                 angles[2][j] = middleGroup2[walk][j]; // lm
                 angles[3][j] = middleGroup1[walk][j]; // rm
                 angles[4][j] = group1[walk][j]; //lb
@@ -106,6 +106,7 @@ void movements::angleTab4(int angles[8][3], int walk, int group1 [8][3], int gro
             }
         }  
     }
+
 
 void movements::angleTabCorner (int angles[6][3], int walk, int group2 [4][3], int group1 [4][3]) {
     for (int j =0; j<3; ++j) {
@@ -132,7 +133,7 @@ void movements::rotation(int way, int cycle){
     int coxaNarrowOffset = 10;
     int cycleNumber = cycle;
 
-    (way != -1 || way != 1) ? way = 1 : way; //if its neither ig we can make it turn clockwise
+    (way != -1 || way != 1) ? way : way = 1; //if its neither ig we can make it turn clockwise
     
     int group1[6][3] = { 
         {90 + way*(coxaWideOffset/2), 95, 145},  
@@ -342,7 +343,7 @@ void movements::backward() {
 void movements::forwardCurve(int way, float turn, int cycle){
     if (turn > 1) turn = 1;
     if (turn < 0) turn = 0;
-    (way != -1 || way != 1) ? way = 1 : way; //if its neither ig we can make it turn clockwise
+    (way != -1 || way != 1) ? way : way = 1; //if its neither ig we can make it turn clockwise
 
     initializeAllServos(standAngle[Coxa], standAngle[Femur], standAngle[Tibia]);
     int coxaWideOffset = 25;
@@ -367,28 +368,32 @@ void movements::forwardCurve(int way, float turn, int cycle){
     const int coxaWide  = 25;
     const int coxaNarrow= 10;
     int rot_g1[4][3] = {
-        {90+way*(coxaWide/2), 95,145},
-        {90+way* coxaWide   , 50,145},
-        {90-way*(coxaWide/4), 50,145},
-        {90-way*(coxaWide/2), 50,145}
+        {90 + way*(coxaWideOffset/2), 95, 145},  
+        {90 + way*coxaWideOffset, 50, 145},
+
+        {90 - way*(coxaWideOffset/4), 50, 145},
+        {90 - way*(coxaWideOffset/2), 50, 145},
     };
     int rot_g2[4][3] = {
-        {90-way*(coxaWide/4), 50,145},
-        {90-way*(coxaWide/2), 50,145},
-        {90+way*(coxaWide/2),95,145},
-        {90+way* coxaWide   , 50,145}
+        {90 - way*(coxaWideOffset/4), 50, 145},
+        {90 - way*(coxaWideOffset/2), 50, 145},
+
+        {90 + way*(coxaWideOffset/2), 95, 145},
+        {90 + way*coxaWideOffset, 50, 145}
     };
     int rot_mg1[4][3] = {
-        {90+way*(coxaNarrow/2),95,145},
-        {90+way* coxaNarrow   , 50,145},
-        {90-way*(coxaNarrow/2), 50,145},
-        {90-way* coxaNarrow   , 50,145}
+        {90 + way*(coxaNarrowOffset/2), 95, 145},
+        {90 + way*coxaNarrowOffset, 50, 145},
+
+        {90 - way*(coxaNarrowOffset/2), 50, 145}, 
+        {90 - way*coxaNarrowOffset, 50, 145}
     };
     int rot_mg2[4][3] = {
-        {90-way*(coxaNarrow/2), 50,145},
-        {90-way* coxaNarrow   , 50,145},
-        {90+way*(coxaNarrow/2),95,145},
-        {90+way* coxaNarrow   , 50,145}
+        {90 - way*(coxaNarrowOffset/2), 50, 145},
+        {90 - way*coxaNarrowOffset, 50, 145}, 
+
+        {90 + way*(coxaNarrowOffset/2), 95, 145},
+        {90 + way*(coxaNarrowOffset), 50, 145}
     };
 
     
@@ -403,13 +408,13 @@ void movements::forwardCurve(int way, float turn, int cycle){
     //3 lower tripod A, push ground
     //4 lower tripod B, push ground
     const uint8_t SUBSTEPS = 4;
-    for (int i = 0; i< 5; ++i){
+    for (int i = 0; i < cycle; ++i){
         for (uint8_t phase = 0; phase < SUBSTEPS; ++phase) {
-        angleTab2(walkFwd, phase, group2, group1);
-        angleTab4(walkRot, phase, rot_g1, rot_g2, rot_mg1, rot_mg2);
-        mixTables(walkMix, walkFwd, walkRot, turn * way);
-        interpolateAngle(legs, walkMix, stepCounter);
-    }
+            angleTab2(walkFwd, phase, group2, group1);
+            angleTab4(walkRot, phase, rot_g1, rot_g2, rot_mg1, rot_mg2);
+            mixTables(walkMix, walkFwd, walkRot, turn * way);
+            interpolateAngle(legs, walkMix, stepCounter);
+        }
     }
     
 }
@@ -417,7 +422,7 @@ void movements::forwardCurve(int way, float turn, int cycle){
 void movements::backwardCurve(int way, float turn, int cycle){
     if (turn > 1) turn = 1;
     if (turn < 0) turn = 0;
-    (way != -1 || way != 1) ? way = 1 : way;
+    (way != -1 || way != 1) ? way : way = 1;
 
     initializeAllServos(standAngle[Coxa], standAngle[Femur], standAngle[Tibia]);
     int coxaWideOffset = 25;
@@ -478,13 +483,15 @@ void movements::backwardCurve(int way, float turn, int cycle){
     //3 lower tripod A, push ground
     //4 lower tripod B, push ground
     const uint8_t SUBSTEPS = 4;
-
-    for (uint8_t phase = 0; phase < SUBSTEPS; ++phase) {
-        angleTab2(walkFwd, phase, group2, group1);
-        angleTab4(walkRot, phase, rot_g1, rot_g2, rot_mg1, rot_mg2);
-        mixTables(walkMix, walkFwd, walkRot, turn * way);
-        interpolateAngle(legs, walkMix, stepCounter);
+    for(int i = 0; i< 5; ++i){
+        for (uint8_t phase = 0; phase < SUBSTEPS; ++phase) {
+            angleTab2(walkFwd, phase, group2, group1);
+            angleTab4(walkRot, phase, rot_g1, rot_g2, rot_mg1, rot_mg2);
+            mixTables(walkMix, walkFwd, walkRot, turn * way);
+            interpolateAngle(legs, walkMix, stepCounter);
+        }
     }
+    
     
 }
 

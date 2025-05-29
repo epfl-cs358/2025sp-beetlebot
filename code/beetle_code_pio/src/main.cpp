@@ -133,13 +133,13 @@ void loop() {
         int test = checkSensor(i);
         lastDists[i] = (test < 0) ? 0: test;
     }
-    Serial.println("last Distances:");
+    /*Serial.println("last Distances:");
     Serial.print(" 0: ");
     Serial.println(lastDists[0]);
     Serial.print(" 1: ");
     Serial.println(lastDists[1]);
     Serial.print(" 2: ");
-    Serial.println(lastDists[2]);
+    Serial.println(lastDists[2]);*/
     handleSerialInput();
 
     if (WEB_SERIAL) {
@@ -271,6 +271,8 @@ void handleTextCommand(String input) {
         }
     } else if (input == "forward") {
         motion.forward();
+    } else if (input == "backward") {
+        motion.backward();
     } else if(input == "help") {
         printHelp();
     } else if(input == "stand") {
@@ -286,9 +288,11 @@ void handleTextCommand(String input) {
     } else if(input == "rot ccw") {
         motion.rotation(-1, 5);
     } else if(input == "forw cw") {
-        motion.forwardCurve(1, 0.5);
+        motion.forwardCurve(1, 0.7, 5);
     } else if(input == "forw ccw") {
-        motion.forwardCurve(-1, 0.5);
+        motion.forwardCurve(-1, 0.5, 5);
+    } else if(input == "back ccw") {
+        motion.backwardCurve(-1, 0.5, 5);
     } else if(input == "side left") {
         motion.sideways(-1);
     } else if(input == "side right") {
