@@ -79,8 +79,6 @@
             movementType = json.movement_type;
             sensorDetect = json.sensorDe;
 
-            document.getElementById("movementStatus").innerText = "Movement type: " + (movementType ? "Rotational" : "Translational");
-            document.getElementById("sensorStatus").innerText = "Sensor detection: " + (sensorDetect ? "On" : "Off");
         };
 
         // keyboard
@@ -164,11 +162,15 @@
         }
 
         function switchMessage() {
+            movementType = !movementType;
             ws.send("MC");
+            document.getElementById("movementStatus").innerText = "Movement type: " + (movementType ? "Rotational" : "Translational");
         }
 
         function sensorMessage() {
+            sensorDetect = !sensorDetect; // Toggle local variable
             ws.send("DE");
+            document.getElementById("sensorStatus").innerText = "Sensor detection: " + (sensorDetect ? "On" : "Off");
         }
 
         // joystick
