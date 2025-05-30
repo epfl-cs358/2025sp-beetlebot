@@ -1,7 +1,5 @@
 #include "main.h"
-#include "sensors.h"
 #include <Adafruit_PWMServoDriver.h>
-#include "sensor.h"
 
 Adafruit_PWMServoDriver multiplexer = Adafruit_PWMServoDriver(0x40);
 AsyncWebServer server(80);
@@ -9,10 +7,10 @@ String wifistr;
 char lastInput[3] = "C";
 int lastDists[3] = {0};
 bool satDown = false;
-int distSensorMin = 0; //
+int distSensorMin = 0;
 int distSensorMax = 150; 
 bool movementType = true; // if sets to true, the robot rotates on itself to get to the direction
-//false : goes in the direction without rotating, ie crabwalk / backwards
+//false : goes in the direction without rotating, i.e. crabwalk / backwards
 bool sensorDetect = false;
 
 // create an easy-to-use handler
@@ -132,24 +130,6 @@ void loop() {
     sleep(1);
     ws.cleanupClients();
     sendJson();
-
-    /** 
-    for (int i = 0; i < 3; ++i) {
-        int test = checkSensor(i);
-        lastDists[i] = (test < 0) ? 0: test;
-    }
-    **/
-    /**
-    Serial.println("last Distances:");
-    Serial.print(" 0: ");
-    Serial.println(lastDists[0]);
-    Serial.print(" 1: ");
-    Serial.println(lastDists[1]);
-    Serial.print(" 2: ");
-    Serial.println(lastDists[2]);
-    **/
-    
-    //handleSerialInput();
 
     if (WEB_SERIAL) {
         switch (lastInput[0]){
@@ -335,7 +315,7 @@ void handleKeyCommand(char key) {
         motion.currAngles[current->index][Femur]= motion.currAngles[current->index][Femur] - offsetAngle;
         break;
       case 'e': 
-        if (current->pinT>=0 && current->pinT<=15) {
+        if (current->pinT >= 0 && current->pinT <= 15) { // these tibia servos are on the 16 pin multiplexer
             current->setAngle(current->pinT, motion.currAngles[current->index][Tibia] +offsetAngle); 
         } else {
             current->setAngle(current->pinT, motion.currAngles[current->index][Tibia] +offsetAngle, current->index); 
@@ -343,7 +323,7 @@ void handleKeyCommand(char key) {
         motion.currAngles[current->index][Tibia]= motion.currAngles[current->index][Tibia] + offsetAngle;
         break;
       case 'd': 
-        if (current->pinT>=0 && current->pinT<=15) {
+        if (current->pinT >= 0 && current->pinT <= 15) {
             current->setAngle(current->pinT, motion.currAngles[current->index][Tibia] -offsetAngle); 
         } else {
             current->setAngle(current->pinT, motion.currAngles[current->index][Tibia] -offsetAngle, current->index); 

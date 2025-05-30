@@ -6,23 +6,10 @@
 const uint8_t sensorCount = 3;
 
 // The Arduino pin connected to the XSHUT pin of each sensor.
-// TODO: PINS USED ON THE ARDUINO FOR NOW, WILL NEED TO BE RECHECKED IF THEY'RE AVAILABLE ON THE ESP32
 const uint8_t xshutPins[sensorCount] = { 25, 26, 27 };
 
 VL53L1X sensors[sensorCount];
 
-// .ino setup for the wiring and sensors
-// TODO: see if wire setup is the same on the ESP32
-/*
-void setup() {
-  while (!Serial) {}
-  Serial.begin(115200);
-  Wire.begin();
-  Wire.setClock(400000); // use 400 kHz I2C
-
-  forceSetup();
-}
-*/
 
 // try to initiate the sensors until all are good
 void forceSetup() {
@@ -92,23 +79,3 @@ int getFromSensor(int i) {
 VL53L1X getSensor(int i) {
   return sensors[i];
 }
-
-// Adapted from the example, used for testing on Arduino
-/*
-void loop() {
-  for (uint8_t i = 0; i < sensorCount; i++)
-  {
-    int val = checkSensor(i);
-    if (val>=0) {
-      Serial.print(val);
-    } else if (val == -1) {
-      Serial.print("Error");
-    } else {
-      Serial.print("Not ready");
-    }
-    Serial.print('\t');
-  }
-  Serial.println();
-  delay(500);
-}
-  */

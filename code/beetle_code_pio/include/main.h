@@ -5,7 +5,8 @@
 #include "SPIFFS.h"
 #include <WiFi.h>                         // ESP32 WiFi support
 #include <AsyncTCP.h>                     // Required for AsyncWebServer on ESP32
-#include <ESPAsyncWebServer.h>  
+#include <ESPAsyncWebServer.h>
+#include "sensors.h"  
 
 const bool WEB_SERIAL = true; // Set to true to enable WebSerial, if false normal serial will be used
 
