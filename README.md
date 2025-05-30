@@ -32,7 +32,7 @@ The goal of our 3D design was to keep it lightweight, as compact as possible, an
 The base was designed to support the heaviest items on the bottom for better stability, while the lid holds the materials that require the most convenient access. This resulted in having 6 servos and the battery, along with its protection board and the buck converter, on the bottom as they hold the most weight. The ESP32 and the servo multiplexer were placed on top as we often needed to change the ESP's or the multiplexer's cabling. The 6 servos that served as coxas were placed downwards and on the base so they wouldnt require any unecessary additional structure by being directly screwed on the floor of the base.
 Finally, the base was designed with many holes to lighten it.
 
-The final weight of the hexapod is XXXXXXXXXX kg with an approximate size of XX x XX x XX cm³
+The final weight of the hexapod is ___ g with an approximate size of 11 * 8.5 * 8 cm³ without the legs and 11 * 35 * 15 cm³ with the legs spread apart for the width of 35 cm and with the legs at their lowest for the height of 15cm.
 
 
 Add potentially BoM and schematics and wiring
