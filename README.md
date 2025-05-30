@@ -55,7 +55,7 @@ everything about the web serial and sensor handling
         - PCA 9685 PWM multiplexer to plug the servos (would advise to have two multiplexers instead of just one)
         - Esp32 Devkit V1 Board as a micro controller, or any esp32 that has WiFi
         - LiPo Battery 25C 1000mAh 2S
-        - Protection Board for the battery
+        - Protection Board for the battery (2 cell BMS)
         - Jst connectors to connect the protection board and the battery
         - LM2596 Buck Converter
         - Cables and tape for the cable management (very important)
@@ -68,14 +68,27 @@ everything about the web serial and sensor handling
             - a second joint to link the Femur and the Tibia
             - a toe with a TCP tip
 - Software requirements: Open the code folder inside VSCode, and install the PlatformIo Extension. 
+## Make your own BeetleBot:
+- Print all the 3D parts inside this [folder](CAD)
+- Soldering :
+    - solder the protection board : 2-jst female connector to the IN +/-, and thick cables on OUT +/- for the consumer side.
+    - Solder the thick cables to the buck converter
+    - Solder ???
+- Screw on the 18 servos : make sure to set them to a given angle (setAngle) inside data.h and put them on at a right angle to their joints
+- Place the buck converter, the battery, the protection board, and the bundle of cables inside the body and screw on the lid on top
+- Screw the multiplexer on the lid.
+- Plug in all the servos on the multiplexer according to the mapping in the data.h, two of those servos (in our case the tibias of the two front legs) should be plugged in to the esp and powered from the power supply.
+- Plug in the sensors on the esp, and screw them (or tape them).
+-  
 
-**Pinouts** : 
+
+## Pinouts
 On Esp:
-    - two servos PMW are plugged in on pin 18 and 23 of the ESP
-    - SDA (pin 21) plugged to the multiplexer, and the sensors. 
-    - SCL (pin 22) plugged to the multiplexer, and the sensors. 
-    - 5V pin to power the esp
-    - GND pin from the esp to the power supply
+        - two servos PMW are plugged in on pin 18 and 23 of the ESP
+        - SDA (pin 21) plugged to the multiplexer, and the sensors.
+        - SCL (pin 22) plugged to the multiplexer, and the sensors.
+        - 5V pin to power the esp
+        - GND pin from the esp to the power supply
 ## Usage Instructions
 
 Explain how to use your project. Include:
