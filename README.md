@@ -39,10 +39,11 @@ The final weight of the hexapod is 495g with an approximate size of 11 * 8.5 * 8
 ## Software Specifications
 The robot is capable of rotational, directional movements as well as standing / sitting (pose transitions). The implementation of those gait patterns works alongside real-time feedback from 3 VL53L1X sensors. The robot is controlled remotely through a webserial, or through input on a terminal (serial monitor) when plugged-in. 
 The webpage accepts directional commands (North, East...) with additional curve orientations (North east, North West). The user can choose to toggle, on the webpage, between translational or rotational movement, and can also choose to toggle on sensor detection. If the sensor detection is on, the cycle of movement will stop if an object is in front, or on the sides, at a given distance. 
+Here is a video to show of the [sensors](images/IMG_0313.MOV).
 Each of our gaits are pre-defined. Real-time interpolation of those pre-defined angles is computed so that each leg moves smoothly, ie a leg contains three servos, and synchronizes with the whole 18 servos. 
 
 The webpage and all of its content is loaded on the flash memory with SPIFFS, which makes it last between resets and not sent when uploading code. The website is processed in main.cpp, which changes the IP address of the websocket defined in it. This websocket is used to send updates between the control panel and the ESP. This is how the ESP get the last input and how the web page get the sensors' distances (used to update animations). The website takes input with a keyboard or with the joystick shown on screen. Both methods send the exact same data to the ESP, to simplify how it is handled.
-
+Here is a video to show off [everything](images/video_2025-05-30_16-48-52.mp4)
 ## Challenges
 
 - Hardware:
@@ -146,4 +147,4 @@ There might be issues connecting to the ESP32 sometimes, it could be a port issu
 
 ## Acknowledgments
 
-We thank the assistants for their help, and we also thank Mehdi A. who was not our assistant but still helped us a lot <3
+We thank all of our TAs and the teacher, especially Pinar Oray, Federico Stella and Mehdi Alaoui. 
