@@ -32,48 +32,50 @@ The final weight of the hexapod is XXXXXXXXXX kg with an approximate size of XX 
 Add potentially BoM and schematics and wiring
 
 ## Software Specifications
-
-@Omayma and Anna
-(everything ab the software here ig)
+The robot is capable of rotational, directional movements as well as standing / sitting (pose transitions). The implementation of those gait patterns works alongside real-time feedback from 3 VL53L1X sensors. The robot is controlled remotely through a webserial, or through input on a terminal (serial monitor) when plugged-in. 
+The webpage accepts directional commands (North, East...) with additional curve orientations (North east, North West). The user can choose to toggle, on the webpage, between translational or rotational movement, and can also choose to toggle on sensor detection. If the sensor detection is on, the cycle of movement will stop if an object is in front, or on the sides, at a given distance. 
+Each of our gaits are pre-defined. Real-time interpolation of those pre-defined angles is computed so that each leg moves smoothly, ie a leg contains three servos, and synchronizes with the whole 18 servos. 
 @Jonas
 everything about the web serial and sensor handling
 
 ## Challenges
 
 - Hardware:
-    - The challenges for the CAD was mainly the leg: We initially had a first design where the leg was unecessary long and heavy, with an added effect of the servos having to handle their own weight along with the rest of the leg. We did not realise immediately the importance of the design, thinking the servos would be able to hold it in any case. In fact, even with our now optimised design, they still have some struggly carrying the whole weight. The leg being too long was also problematic because this made it impossible for the hexapod to stand up or walk without putting too much force on the servos. It took some time but we finally managed to create a minimalistric design where the servos were tightly screwed to their joint. In consequence, the legs were much lighter and the servos did not have to hold their own weight anymore.
-    - Another hardware challenge was the cable management. Indeed, we were facing a trio of cables for each servos, along with cables for the multiplexer, the battery, the sensors and the ESP32, totalling with a strong ~50 cables. We managed to make some of them fit inside the base, but the biggest problems was the cables that had to stay outside of the base since the multiplexer was on the lid. We ended up tying the servo cables together so they would not be everywhere around our hexapod.
-      
+    - The challenges for the CAD was mainly the leg: We initially had a first design where the leg was unecessary long and heavy, with an added effect of the servos having to handle their own weight along with the rest of the leg. We did not realise immediately the importance of the design, thinking the servos would be able to hold it in any case. In fact, even with our now optimised design, they still struggle carrying the whole weight. The leg being too long was also problematic because this made it impossible for the hexapod to stand up or walk without putting too much force on the servos. It took some time but we finally managed to create a minimalistric design where the servos were tightly screwed to their joint. In consequence, the legs were much lighter and the servos did not have to hold their own weight anymore.
+    - Another hardware challenge was the cable management. Indeed, we were facing a trio of cables for each servos, along with cables for the multiplexer, the battery, the sensors and the ESP32, totalling with a strong ~50 cables. We managed to make some of them fit inside the base, but the biggest problems was the cables that had to stay outside of the base since the multiplexer was on the lid. We ended up tying the servo cables together so they would not be everywhere around our hexapod.  
 - Software:
-    - IK
-
-(the main challenges we had to keep in mind while making the bot)
+    - One of the main challenges was trying to implement inverse kinematics (IK). While the math behind it was well-understood on paper, translating it to code was a bit more compilcated. The IK computations relied heavily on real-world measurements, such as the exact lengths of the leg segments and the position of the servos, and small differences made the leg movement inaccurate or unexpected. Tuning those parameters was particularly difficult, and we were short on time to completely dive in and properly understand what was wrong and how to fix it. We made compromises by gradually introducing motion interpolation and hardcoding the gaits we wanted, as explained on the last section.
 
 ## Installation Instructions
-
-Detail the steps required to set up the project. This should include:
 
 - Hardware requirements (e.g., components needed).
     - Electronics:
         - 18 servos (in our case it was servo SG90 but we would heavily recommand stronger ones)
-        - 3 sensors to place in front and on the sides
-        - PCA multiplexer to plug the servosA
-        - ESP32 as a micro controller
-        - LiPo Battery (1000 mAh is enough)
+        - 3 sensors(TOF400C) to place in front and on the sides
+        - PCA 9685 PWM multiplexer to plug the servos (would advise to have two multiplexers instead of just one)
+        - Esp32 Devkit V1 Board as a micro controller, or any esp32 that has WiFi
+        - LiPo Battery 25C 1000mAh 2S
         - Protection Board for the battery
-        - Buck converter to convert the battery's voltage to 5V (the ESP32 and the servos can't handle more)
-        - And a bunch of cables and Id suggest tape for the cable management (very important)
+        - Jst connectors to connect the protection board and the battery
+        - LM2596 Buck Converter
+        - Cables and tape for the cable management (very important)
     - CAD components:
-        - a base to hold the battery, its protection board and 6 servos that will serve as the Coxas of the legs.
+        - a base to hold the battery, 6 servos that will serve as the Coxas of the legs.
         - a lid to screw on top of the base, where we can place the multiplexer, the ESP32 and the buck converter.
         - 3 sensor holders to place in between the base and the lid
         - 6 legs composed of 3 pieces each:
             - a first joint to link the Coxa and the Femur
             - a second joint to link the Femur and the Tibia
             - a toe with a TCP tip
-- Software requirements (e.g., libraries, IDE).
-- Step-by-step installation guide.
+- Software requirements: Open the code folder inside VSCode, and install the PlatformIo Extension. 
 
+**Pinouts** : 
+On Esp:
+    - two servos PMW are plugged in on pin 18 and 23 of the ESP
+    - SDA (pin 21) plugged to the multiplexer, and the sensors. 
+    - SCL (pin 22) plugged to the multiplexer, and the sensors. 
+    - 5V pin to power the esp
+    - GND pin from the esp to the power supply
 ## Usage Instructions
 
 Explain how to use your project. Include:
