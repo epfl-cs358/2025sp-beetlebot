@@ -32,7 +32,7 @@ The goal of our 3D design was to keep it lightweight, as compact as possible, an
 The base was designed to support the heaviest items on the bottom for better stability, while the lid holds the materials that require the most convenient access. This resulted in having 6 servos and the battery, along with its protection board and the buck converter, on the bottom as they hold the most weight. The ESP32 and the servo multiplexer were placed on top as we often needed to change the ESP's or the multiplexer's cabling. The 6 servos that served as coxas were placed downwards and on the base so they wouldnt require any unecessary additional structure by being directly screwed on the floor of the base.
 Finally, the base was designed with many holes to lighten it.
 
-The final weight of the hexapod is ___ g with an approximate size of 11 * 8.5 * 8 cm³ without the legs and 11 * 35 * 15 cm³ with the legs spread apart for the width of 35 cm and with the legs at their lowest for the height of 15cm.
+The final weight of the hexapod is 495g with an approximate size of 11 * 8.5 * 8 cm³ without the legs and 11 * 35 * 15 cm³ with the legs spread apart for the width of 35 cm and with the legs at their lowest for the height of 15cm.
 
 
 
@@ -40,8 +40,8 @@ The final weight of the hexapod is ___ g with an approximate size of 11 * 8.5 * 
 The robot is capable of rotational, directional movements as well as standing / sitting (pose transitions). The implementation of those gait patterns works alongside real-time feedback from 3 VL53L1X sensors. The robot is controlled remotely through a webserial, or through input on a terminal (serial monitor) when plugged-in. 
 The webpage accepts directional commands (North, East...) with additional curve orientations (North east, North West). The user can choose to toggle, on the webpage, between translational or rotational movement, and can also choose to toggle on sensor detection. If the sensor detection is on, the cycle of movement will stop if an object is in front, or on the sides, at a given distance. 
 Each of our gaits are pre-defined. Real-time interpolation of those pre-defined angles is computed so that each leg moves smoothly, ie a leg contains three servos, and synchronizes with the whole 18 servos. 
-@Jonas
-everything about the web serial and sensor handling, what you did and why u did
+
+The webpage and all of its content is loaded on the flash memory with SPIFFS, which makes it last between resets and not sent when uploading code. The website is processed in main.cpp, which changes the IP address of the websocket defined in it. This websocket is used to send updates between the control panel and the ESP. This is how the ESP get the last input and how the web page get the sensors' distances (used to update animations). The website takes input with a keyboard or with the joystick shown on screen. Both methods send the exact same data to the ESP, to simplify how it is handled.
 
 ## Challenges
 
