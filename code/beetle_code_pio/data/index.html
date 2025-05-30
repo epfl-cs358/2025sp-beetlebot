@@ -53,15 +53,16 @@
             margin-right: auto;
         ">
             <strong>Movement info: Rotational</strong><br>
-                • <strong>W</strong> / <strong>N</strong> on JS – Forward<br>
-                • <strong>E</strong> / <strong>NE</strong> on JS – Forward curve right <br>
-                • <strong>Q</strong>/ <strong>NW</strong> on JS – Forward curve left <br>
-                • <strong>D</strong> / <strong>E</strong> on JS – Rotate facing East <br>
-                • <strong>A</strong>  / <strong>W</strong> on JS – Rotate facing West<br>
-                • <strong>X</strong> / <strong>S</strong> on JS – Rotate facing South<br>
-                • <strong>C</strong> / <strong>SE</strong> on JS – Rotate facing Southeast<br>
-                • <strong>Y</strong> / <strong>SW</strong> on JS – Rotate facing Southwest<br>
-                • <strong>S</strong> – Toggle Sit down /Stand up<br><br>
+                - <strong>W</strong> / <strong>N</strong> on JS : Forward<br>
+                - <strong>E</strong> / <strong>NE</strong> on JS : Forward curve right <br>
+                - <strong>Q</strong>/ <strong>NW</strong> on JS : Forward curve left <br>
+                - <strong>D</strong> / <strong>E</strong> on JS : Rotate facing East <br>
+                - <strong>A</strong>  / <strong>W</strong> on JS : Rotate facing West<br>
+                - <strong>X</strong> / <strong>S</strong> on JS : Rotate facing South<br>
+                - <strong>C</strong> / <strong>SE</strong> on JS : Rotate facing Southeast<br>
+                - <strong>Y</strong> / <strong>SW</strong> on JS : Rotate facing Southwest<br>
+                - <strong>S</strong> : Toggle Sit down /Stand up<br><br>
+                - <strong>R</strong> : Wave <br><br>
             Toggle 'change movement type' to get translational movement!
         </div>
     </div>
@@ -140,6 +141,8 @@
                             break;
                         case "s": 
                             dir = "U";
+                        case "r":
+                            dir = "B"
                     }
                 } else {
                     switch (inField.value) {
@@ -169,6 +172,8 @@
                             break;
                         case "s": 
                             dir = "U";
+                        case "r":
+                            dir = "B"
                     }
                 }
                 if (dir != "") { // only send if its a direction
@@ -194,27 +199,29 @@
             const movementBox = document.getElementById("movementBox");
             if (movementType) {
                 movementBox.innerHTML = "<strong>Movement info: Rotational</strong><br>" +
-                "• <strong>W</strong> / <strong>N</strong> on JS – Forward<br>" +
-                "• <strong>E</strong> / <strong>NE</strong> on JS – Forward curve right <br>" +
-                "• <strong>Q</strong>/ <strong>NW</strong> on JS – Forward curve left <br>" +
-                "• <strong>D</strong> / <strong>E</strong> on JS – Rotate facing East <br>" +
-                "• <strong>A</strong>  / <strong>W</strong> on JS – Rotate facing West<br>" +
-                "• <strong>X</strong> / <strong>S</strong> on JS – Rotate facing South<br>" +
-                "• <strong>C</strong> / <strong>SE</strong> on JS – Rotate facing Southeast<br>" +
-                "• <strong>Y</strong> / <strong>SW</strong> on JS – Rotate facing Southwest<br>" +
-                "• <strong>S</strong> – Toggle Sit down /Stand up<br><br>" +
+                "- <strong>W</strong> / <strong>N</strong> on JS : Forward<br>" +
+                "- <strong>E</strong> / <strong>NE</strong> on JS : Forward curve right <br>" +
+                "- <strong>Q</strong>/ <strong>NW</strong> on JS : Forward curve left <br>" +
+                "- <strong>D</strong> / <strong>E</strong> on JS : Rotate facing East <br>" +
+                "- <strong>A</strong>  / <strong>W</strong> on JS : Rotate facing West<br>" +
+                "- <strong>X</strong> / <strong>S</strong> on JS : Rotate facing South<br>" +
+                "- <strong>C</strong> / <strong>SE</strong> on JS : Rotate facing Southeast<br>" +
+                "- <strong>Y</strong> / <strong>SW</strong> on JS : Rotate facing Southwest<br>" +
+                "- <strong>S</strong> : Toggle Sit down /Stand up<br><br>" +
+                "- <strong>R</strong> : Wave <br><br>" +
             "Toggle 'change movement type' to get translational movement!";
             } else {
                 movementBox.innerHTML = "<strong>Movement info: Rotational</strong><br>" +
-                "• <strong>W</strong> / <strong>N</strong> on JS – Forward<br>" +
-                "• <strong>E</strong> / <strong>NE</strong> on JS – Forward curve right <br>" +
-                "• <strong>Q</strong>/ <strong>NW</strong> on JS – Forward curve left <br>" +
-                "• <strong>D</strong> / <strong>E</strong> on JS – Sideway right <br>" +
-                "• <strong>A</strong>  / <strong>W</strong> on JS – Sideway left <br>" +
-                "• <strong>X</strong> / <strong>S</strong> on JS – Backward <br>" +
-                "• <strong>C</strong> / <strong>SE</strong> on JS – Backward curve right <br>" +
-                "• <strong>Y</strong> / <strong>SW</strong> on JS – Backward curve left <br>" +
-                "• <strong>S</strong> – Toggle Sit down /Stand up<br><br>" +
+                "- <strong>W</strong> / <strong>N</strong> on JS : Forward<br>" +
+                "- <strong>E</strong> / <strong>NE</strong> on JS : Forward curve right <br>" +
+                "- <strong>Q</strong>/ <strong>NW</strong> on JS : Forward curve left <br>" +
+                "- <strong>D</strong> / <strong>E</strong> on JS : Sideway right <br>" +
+                "- <strong>A</strong>  / <strong>W</strong> on JS : Sideway left <br>" +
+                "- <strong>X</strong> / <strong>S</strong> on JS : Backward <br>" +
+                "- <strong>C</strong> / <strong>SE</strong> on JS : Backward curve right <br>" +
+                "- <strong>Y</strong> / <strong>SW</strong> on JS : Backward curve left <br>" +
+                "- <strong>S</strong> : Toggle Sit down /Stand up<br><br>" +
+                "- <strong>R</strong> : Wave <br><br>" +
             "Toggle 'change movement type' to get rotational movement!";
             }
         }

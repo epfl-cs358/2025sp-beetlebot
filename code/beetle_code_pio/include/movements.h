@@ -13,12 +13,15 @@ class movements {
         void forwardCurve(int way, float turn, int cycle = 4);
         void backwardCurve (int way, float turn, int cycle = 4);
 
-
+        //left or right translational movements
         void sideways(int direction);
 
         //setups
         void standUp();
         void sitDown();
+
+        // fun little wave
+        void wave();
 
         //necessary for smoother movements : interpolate the angles to make sure each leg moves together
         void interpolateAngle(leg* body[6], int finalAngles[6][3], int stepNumber);
@@ -32,6 +35,7 @@ class movements {
         void angleTabSide(int angles[6][3], int walk, int group1 [8][3], int group2[8][3], 
             int middleGroup1 [8][3], int middleGroup2 [8][3]);
         void angleTabStand (int angles[6][3], int leg, int angleLift [3]);
+        void angleTabWave (int angles[6][3], int walk, int waveG[6][3]);
 
         movements(leg lf, leg rf, leg lm, leg rm, leg lb, leg rb, Adafruit_PWMServoDriver &multiplexer, int stepCounter)
         : multiplexer(multiplexer), lf(lf), rf(rf), lm(lm), rm(rm), lb(lb), rb(rb), stepCounter(stepCounter)

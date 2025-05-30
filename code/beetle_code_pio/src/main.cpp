@@ -133,12 +133,13 @@ void loop() {
     ws.cleanupClients();
     sendJson();
 
+    /** 
     for (int i = 0; i < 3; ++i) {
         int test = checkSensor(i);
         lastDists[i] = (test < 0) ? 0: test;
     }
-
-    
+    **/
+    /**
     Serial.println("last Distances:");
     Serial.print(" 0: ");
     Serial.println(lastDists[0]);
@@ -146,7 +147,7 @@ void loop() {
     Serial.println(lastDists[1]);
     Serial.print(" 2: ");
     Serial.println(lastDists[2]);
-    
+    **/
     
     //handleSerialInput();
 
@@ -212,6 +213,10 @@ void loop() {
                     motion.sitDown();
                     satDown = !satDown;
                 }
+                break;
+            case 'B': 
+                if (satDown) break;
+                motion.wave();
                 break;
             default:
                 break;
@@ -304,6 +309,8 @@ void handleTextCommand(String input) {
         motion.sideways(1);
     } else if(input == "right") {
         motion.sideways(0);
+    }  else if (input == "wave"){
+        motion.wave();
     } else {
         Sprintln(PROGMEM "Unknown command. Type 'help' for a list of commands.");
     }

@@ -46,12 +46,13 @@ void movements::standUp() {
 
     //check that every leg is where it needs to be:
     int lift [6][3];
-    int angleLift[3] = {90, 70, 145};
+    int angleLift[3] = {90, 70, 125};
     for (int i = 0; i<6; ++i) {
-
         angleTabStand(lift, i, angleLift);
         interpolateAngle(legs, lift, stepCounter);
     }
+
+    interpolateAngle(legs, stand2, stepCounter);
 
 }
 
@@ -179,6 +180,18 @@ void movements::angleTabCorner (int angles[6][3], int walk, int group2 [4][3], i
         }
     }
 }
+
+void movements::angleTabWave (int angles[6][3], int walk, int waveG[6][3]){
+    for (int j = 0; j < 3; ++j) {
+        angles[0][j] = standAngle[j];         // lf
+        angles[1][j] = waveG[walk][j];        // rf (wave)
+        angles[2][j] = standAngle[j];         // lm
+        angles[3][j] = standAngle[j];         // rm
+        angles[4][j] = standAngle[j];         // lb
+        angles[5][j] = standAngle[j];         // rb
+    }
+}
+
 void movements::rotation(int direction, int cycle){
     initializeAllServos(standAngle[Coxa], standAngle[Femur], standAngle[Tibia]);
     int coxaWideOffset = 25;
@@ -544,105 +557,93 @@ void movements::backwardCurve(int direction, float turn, int cycle){
     
 }
 
+void setSideGroupsRight(int group1[8][3], int group2[8][3], int middleGroup1[8][3], int middleGroup2[8][3]) {
+    int g1[8][3] = { // lf and lb
+        {90, 50, 145}, {90, 50, 145}, {115, 65, 145}, {135, 45, 140},
+        {115, 45, 140}, {90, 50, 145}, {90, 50, 145}, {90, 50, 145}
+    };
+    int g2[8][3] = { // rf and rb
+        {90, 50, 145}, {90, 50, 145}, {115, 45, 140}, {135, 45, 140},
+        {115, 65, 145}, {90, 50, 145}, {90, 50, 145}, {90, 50, 145}
+    };
+    int mg1[8][3] = { // rm
+        {90, 50, 145}, {90, 50, 145}, {90, 70, 145}, {90, 50, 145},
+        {90, 45, 135}, {90, 50, 125}, {90, 70, 135}, {90, 50, 145}
+    };
+    int mg2[8][3] = { // lm
+        {90, 70, 135}, {90, 50, 125}, {90, 45, 135}, {90, 50, 145},
+        {90, 70, 145}, {90, 50, 145}, {90, 50, 145}, {90, 50, 145}
+    };
+    memcpy(group1, g1, sizeof(g1));
+    memcpy(group2, g2, sizeof(g2));
+    memcpy(middleGroup1, mg1, sizeof(mg1));
+    memcpy(middleGroup2, mg2, sizeof(mg2));
+}
+
+void setSideGroupsLeft(int group1[8][3], int group2[8][3], int middleGroup1[8][3], int middleGroup2[8][3]) {
+    int g1[8][3], g2[8][3], mg1[8][3], mg2[8][3];
+    setSideGroupsRight(g2, g1, mg2, mg1); // swap group1/group2 and middleGroup1/middleGroup2
+
+    memcpy(group1, g1, sizeof(g1));
+    memcpy(group2, g2, sizeof(g2));
+    memcpy(middleGroup1, mg1, sizeof(mg1));
+    memcpy(middleGroup2, mg2, sizeof(mg2));
+}
+
 void movements::sideways(int direction){
     // direction = 1 for left, 0 for right
     //initializeAllServos(standAngle[Coxa], standAngle[Femur], standAngle[Tibia]);
-    int cycle = 3; // coxa angles set for front ones, back have to do -180
-    int group1[8][3] = { // lf and lb
-        {90, 50, 145}, // 1st part
-        {90, 50, 145},
-        {115, 65, 145}, // 2nd part
-        {135, 45, 140},
-        {115, 45, 140}, // 3rd part
-        {90, 50, 145},
-        {90, 50, 145}, // 4th part
-        {90, 50, 145}
-    };
-    int group2[8][3] = { // rf and rb
-        {90, 50, 145}, // 1st part
-        {90, 50, 145},
-        {115, 45, 140}, // 2nd part
-        {135, 45, 140},
-        {115, 65, 145}, // 3rd part
-        {90, 50, 145},
-        {90, 50, 145}, // 4th part
-        {90, 50, 145}
-    };
-    int middleGroup2[8][3] = { // lm
-        {90, 70, 135}, // 1st part
-        {90, 50, 125},
-        {90, 45, 135}, // 2nd part
-        {90, 50, 145},
-        {90, 70, 145}, // 3rd part
-        {90, 50, 145},
-        {90, 50, 145}, // 4th part
-        {90, 50, 145}
-    };
-    int middleGroup1[8][3] = { // rm
-        {90, 50, 145}, // 1st part
-        {90, 50, 145},
-        {90, 70, 145}, // 2nd part
-        {90, 50, 145},
-        {90, 45, 135}, // 3rd part
-        {90, 50, 125},
-        {90, 70, 135}, // 4th part
-        {90, 50, 145}
-    };
+    int cycle = 2; // coxa angles set for front ones, back have to do -180
+    int steps = 8;
+    int group1[8][3], group2[8][3], middleGroup1[8][3], middleGroup2[8][3];
+    if (direction == 1) { // left
+        setSideGroupsLeft(group1, group2, middleGroup1, middleGroup2);
+    } else { // right
+        setSideGroupsRight(group1, group2, middleGroup1, middleGroup2);
+    }
     
     int crabWalk [6][3];
-    for (int i = 0; i<cycle; i++) {
-        if (direction == 1) { //left 
-            angleTabSide(crabWalk, 0, group1, group2, middleGroup1, middleGroup2);
-            interpolateAngle(legs, crabWalk, stepCounter); 
-        
-            angleTabSide(crabWalk, 1, group1, group2, middleGroup1, middleGroup2);
-            interpolateAngle(legs, crabWalk, stepCounter); 
-    
-            angleTabSide(crabWalk, 2, group1, group2, middleGroup1, middleGroup2);
-            interpolateAngle(legs, crabWalk, stepCounter); 
-
-            angleTabSide(crabWalk, 3, group1, group2, middleGroup1, middleGroup2);
-            interpolateAngle(legs, crabWalk, stepCounter);
-            
-            angleTabSide(crabWalk, 4, group1, group2, middleGroup1, middleGroup2);
-            interpolateAngle(legs, crabWalk, stepCounter);
-
-            angleTabSide(crabWalk, 5, group1, group2, middleGroup1, middleGroup2);
-            interpolateAngle(legs, crabWalk, stepCounter);
-
-            angleTabSide(crabWalk, 6, group1, group2, middleGroup1, middleGroup2);
-            interpolateAngle(legs, crabWalk, stepCounter);
-
-            angleTabSide(crabWalk, 7, group1, group2, middleGroup1, middleGroup2);
-            interpolateAngle(legs, crabWalk, stepCounter);
-            
-        } else { //right
-            angleTabSide(crabWalk, 0, group1, group2, middleGroup1, middleGroup2);
-            interpolateAngle(legs, crabWalk, stepCounter); 
-        
-            angleTabSide(crabWalk, 1, group1, group2, middleGroup1, middleGroup2);
-            interpolateAngle(legs, crabWalk, stepCounter); 
-    
-            angleTabSide(crabWalk, 2, group1, group2, middleGroup1, middleGroup2);
-            interpolateAngle(legs, crabWalk, stepCounter); 
-
-            angleTabSide(crabWalk, 3, group1, group2, middleGroup1, middleGroup2);
-            interpolateAngle(legs, crabWalk, stepCounter);
-
-            angleTabSide(crabWalk, 4, group1, group2, middleGroup1, middleGroup2);
-            interpolateAngle(legs, crabWalk, stepCounter);
-
-            angleTabSide(crabWalk, 5, group1, group2, middleGroup1, middleGroup2);
-            interpolateAngle(legs, crabWalk, stepCounter);
-
-            angleTabSide(crabWalk, 6, group1, group2, middleGroup1, middleGroup2);
-            interpolateAngle(legs, crabWalk, stepCounter);
-
-            angleTabSide(crabWalk, 7, group1, group2, middleGroup1, middleGroup2);
+    for (int i = 0; i<cycle;i++){
+        for (int j = 0; j<steps;j++){
+            angleTabSide(crabWalk, j, group1, group2, middleGroup1, middleGroup2);
             interpolateAngle(legs, crabWalk, stepCounter);
         }
     }
 }
+
+void movements::wave(){
+    int steps = 6;
+    int cycle = 3;
+    int waveG[steps][3] = { // rf
+        {90, 120, 145},
+        {75, 120, 145},
+        {90, 140, 145},
+        {105, 120, 145},
+        {90, 120, 145},
+        {90, 50, 145}
+    };
+
+    int waveMove[6][3];
+    
+    angleTabWave(waveMove,0,waveG);
+    interpolateAngle(legs,waveMove,stepCounter);
+
+    for (int i = 0; i<cycle; i++){
+        angleTabWave(waveMove,1,waveG);
+        interpolateAngle(legs,waveMove,stepCounter);
+        angleTabWave(waveMove,2,waveG);
+        interpolateAngle(legs,waveMove,stepCounter);
+        angleTabWave(waveMove,3,waveG);
+        interpolateAngle(legs,waveMove,stepCounter);
+        angleTabWave(waveMove,4,waveG);
+        interpolateAngle(legs,waveMove,stepCounter);
+    }
+
+    angleTabWave(waveMove,5,waveG);
+    interpolateAngle(legs,waveMove,stepCounter);
+
+}
+
     
 /*
    * main function that moves each servo, at the same time, and all proportionally (decided by stepNumber) towards their 
