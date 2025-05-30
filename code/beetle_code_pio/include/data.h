@@ -32,14 +32,14 @@ const int lfTOffset = 0;
 
 const int rfCOffset = 0;
 const int rfFOffset = -5;
-const int rfTOffset = 0;
+const int rfTOffset = 7;
 
 const int lmCOffset = 0;
 const int lmFOffset = -5;
 const int lmTOffset = -5;
 
 const int rmCOffset = 0;
-const int rmFOffset = 0;
+const int rmFOffset = -5;
 const int rmTOffset = 0;
 
 const int lbCOffset = 0;
