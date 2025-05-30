@@ -86,7 +86,7 @@
         var kbgroup = document.getElementById("kb");
         var qwertzDis = document.getElementById("qwertz");
         var tsgroup = document.getElementById("js");
-        var sensorDist = [200,200,200]; // will be drawn, values should be between 0 to w/2 or h/2
+        var sensorDist = [0,0,0]; // will be drawn, values should be between 0 to w/2 or h/2
         var movementType = true;
         var sensorDetect = false;
         
@@ -101,7 +101,7 @@
                 msgList.querySelector('li').remove();
             }
 
-            sensorDist = [json.dist0, json.dist1, json.dist2];
+            sensorDist = [Math.min(json.dist0/2, 200), Math.min(json.dist1/2, 200), Math.min(json.dist2/2, 200)];
             movementType = json.movement_type;
             sensorDetect = json.sensorDe;
 
@@ -142,7 +142,7 @@
                         case "s": 
                             dir = "U";
                         case "r":
-                            dir = "B"
+                            dir = "B";
                     }
                 } else {
                     switch (inField.value) {
@@ -173,7 +173,7 @@
                         case "s": 
                             dir = "U";
                         case "r":
-                            dir = "B"
+                            dir = "B";
                     }
                 }
                 if (dir != "") { // only send if its a direction

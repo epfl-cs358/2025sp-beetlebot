@@ -127,7 +127,15 @@ bool isMultiplexerConnected(uint8_t address = 0x40) {
 }
 
 void loop() {
-    sleep(1);
+    for(int i = 0; i < 3; ++i){
+        int val = checkSensor(i);
+        if (val > 0) {
+            lastDists[i] = val;
+        } else if (val == -1) {
+            lastDists[i] = 0;
+        }
+    }
+
     ws.cleanupClients();
     sendJson();
 
@@ -199,6 +207,7 @@ void loop() {
                 motion.wave();
                 break;
             default:
+                sleep(1);
                 break;
         }
     } else {
