@@ -58,13 +58,20 @@ everything about the web serial and sensor handling
 - Hardware requirements (e.g., components needed).
     - Electronics:
         - 18 servos (in our case it was servo SG90 but we would heavily recommand stronger ones)
+          ![SG90 Servo](images/servo9G.jpg)
         - 3 sensors(TOF400C) to place in front and on the sides
+          ![SG90 Servo](images/servo9G.jpg)
         - PCA 9685 PWM multiplexer to plug the servos (would advise to have two multiplexers instead of just one)
+          ![PCA9685 Multiplexer](images/PCA9685.jpg)
         - Esp32 Devkit V1 Board as a micro controller, or any esp32 that has WiFi
+          ![ESP32](images/esp32.jpg)
         - LiPo Battery 25C 1000mAh 2S
+          ![LiPo Battery](images/LiPo.jpg)
         - Protection Board for the battery (2 cell BMS)
+          ![Protection Board](images/ProtectionBoard.jpg)
         - Jst connectors to connect the protection board and the battery
         - LM2596 Buck Converter
+        - ![Buck converter](images/buckConverter.jpg)
         - Cables and tape for the cable management (very important)
     - CAD components:
         - a base to hold the battery, 6 servos that will serve as the Coxas of the legs.
