@@ -71,7 +71,7 @@ everything about the web serial and sensor handling
           ![Protection Board](images/ProtectionBoard.jpg)
         - Jst connectors to connect the protection board and the battery
         - LM2596 Buck Converter
-        - ![Buck converter](images/buckConverter.jpg)
+          ![Buck converter](images/buckConverter.jpg)
         - Cables and tape for the cable management (very important)
     - CAD components:
         - a base to hold the battery, 6 servos that will serve as the Coxas of the legs.
