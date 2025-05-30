@@ -80,15 +80,18 @@ everything about the web serial and sensor handling
 ## Make your own BeetleBot:
 - Print all the 3D parts inside this [folder](CAD)
 - Soldering :
-    - solder the protection board : 2-jst female connector to the IN +/-, and thick cables on OUT +/- for the consumer side.
+    - solder the protection board : 2-jst female connector to the 8.4V for the (+) and 0V for the (-) : This will be where you plug your battery.
+    - Solder the protection board 2 : thick cables on 12.6V for the (+) and 4.2V for the (-) : This will be for the consumer side.
     - Solder the thick cables to the buck converter
-    - Solder ???
-- Screw on the 18 servos : make sure to set them to a given angle (setAngle) inside data.h and put them on at a right angle to their joints
+    - Solder some cables (preferably thick) from the out pins of the buck converter and connect it to the general (+) and (-) circuit of your system.
+- Screw on the 18 servos to the main body and on their joints: make sure to set them to a given angle (setAngle) inside data.h and put them on at a right angle to their joints
 - Place the buck converter, the battery, the protection board, and the bundle of cables inside the body and screw on the lid on top
 - Screw the multiplexer on the lid.
+- Place the ESP32 in its sloth and crew the T stick figure on top to keep it in place.
 - Plug in all the servos on the multiplexer according to the mapping in the data.h, two of those servos (in our case the tibias of the two front legs) should be plugged in to the esp and powered from the power supply.
+- Plug all the cables coming out of the multiplexer (SDA, SCL,...)
 - Plug in the sensors on the esp, and screw them (or tape them).
--  
+- Finally, you can place a little hat on top and you're good to go!
 
 
 ## Pinouts
