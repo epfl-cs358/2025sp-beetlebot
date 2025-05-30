@@ -13,10 +13,17 @@ Thus, a hexapod demonstrates flexibility in how it can move and balance its weig
 It interacts with its surrounding with three sensors posted on the front and the side. Read more on the [project proposal]().
 
 ## Table of Contents
+- [Hardware & Design Specifications](#hardware-and-design-specifications)
+- [Software Specifications](#software-specifications)
+- [Challenges](#challenges)
+- [Installation Instructions](#installation-instructions)
+- [Make your own BeetleBot](#make-your-own-beetleBot)
+- [Pinouts](#pinouts)
+- [Usage Instructions](#usage-instructions)
+- [Troubleshooting](#troubleshooting)
+- [Acknowledgments](#acknowledgments)
 
-(for easier navigation through the document, will most likely be completed last)
-
-## Hardware & Design Specifications
+## Hardware And Design Specifications
 
 [View 3D Model](documentation/full_bot.stl)
 
@@ -24,7 +31,6 @@ The goal of our 3D design was to keep it lightweight, as compact as possible, an
 
 The base was designed to support the heaviest items on the bottom for better stability, while the lid holds the materials that require the most convenient access. This resulted in having 6 servos and the battery, along with its protection board and the buck converter, on the bottom as they hold the most weight. The ESP32 and the servo multiplexer were placed on top as we often needed to change the ESP's or the multiplexer's cabling. The 6 servos that served as coxas were placed downwards and on the base so they wouldnt require any unecessary additional structure by being directly screwed on the floor of the base.
 Finally, the base was designed with many holes to lighten it.
-The design of the
 
 The final weight of the hexapod is XXXXXXXXXX kg with an approximate size of XX x XX x XX cm³
 
@@ -45,6 +51,7 @@ everything about the web serial and sensor handling
     - Another hardware challenge was the cable management. Indeed, we were facing a trio of cables for each servos, along with cables for the multiplexer, the battery, the sensors and the ESP32, totalling with a strong ~50 cables. We managed to make some of them fit inside the base, but the biggest problems was the cables that had to stay outside of the base since the multiplexer was on the lid. We ended up tying the servo cables together so they would not be everywhere around our hexapod.  
 - Software:
     - One of the main challenges was trying to implement inverse kinematics (IK). While the math behind it was well-understood on paper, translating it to code was a bit more compilcated. The IK computations relied heavily on real-world measurements, such as the exact lengths of the leg segments and the position of the servos, and small differences made the leg movement inaccurate or unexpected. Tuning those parameters was particularly difficult, and we were short on time to completely dive in and properly understand what was wrong and how to fix it. We made compromises by gradually introducing motion interpolation and hardcoding the gaits we wanted, as explained on the last section.
+
 
 ## Installation Instructions
 
@@ -67,7 +74,9 @@ everything about the web serial and sensor handling
             - a first joint to link the Coxa and the Femur
             - a second joint to link the Femur and the Tibia
             - a toe with a TCP tip
-- Software requirements: Open the code folder inside VSCode, and install the PlatformIo Extension. 
+- Software requirements: Open the code folder inside VSCode, and install the PlatformIo Extension.
+
+  
 ## Make your own BeetleBot:
 - Print all the 3D parts inside this [folder](CAD)
 - Soldering :
@@ -89,6 +98,8 @@ On Esp:
         - SCL (pin 22) plugged to the multiplexer, and the sensors.
         - 5V pin to power the esp
         - GND pin from the esp to the power supply
+
+        
 ## Usage Instructions
 
 Explain how to use your project. Include:
@@ -101,9 +112,6 @@ Explain how to use your project. Include:
 
 Provide solutions to common issues that users might encounter. This can help users resolve problems without needing to contact you.
 
-## License
-
-(à voir si on ajoute ou pas)
 
 ## Acknowledgments
 
