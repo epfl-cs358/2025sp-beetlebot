@@ -16,7 +16,7 @@ It interacts with its surrounding with three sensors posted on the front and the
 - [Hardware & Design Specifications](#hardware-and-design-specifications)
 - [Software Specifications](#software-specifications)
 - [Challenges](#challenges)
-- [Installation Instructions](#installation-instructions)
+- [Installation Requirements](#installation-requirements)
 - [Make your own BeetleBot](#make-your-own-beetleBot)
 - [Pinouts](#pinouts)
 - [Usage Instructions](#usage-instructions)
@@ -35,14 +35,13 @@ Finally, the base was designed with many holes to lighten it.
 The final weight of the hexapod is ___ g with an approximate size of 11 * 8.5 * 8 cm³ without the legs and 11 * 35 * 15 cm³ with the legs spread apart for the width of 35 cm and with the legs at their lowest for the height of 15cm.
 
 
-Add potentially BoM and schematics and wiring
 
 ## Software Specifications
 The robot is capable of rotational, directional movements as well as standing / sitting (pose transitions). The implementation of those gait patterns works alongside real-time feedback from 3 VL53L1X sensors. The robot is controlled remotely through a webserial, or through input on a terminal (serial monitor) when plugged-in. 
 The webpage accepts directional commands (North, East...) with additional curve orientations (North east, North West). The user can choose to toggle, on the webpage, between translational or rotational movement, and can also choose to toggle on sensor detection. If the sensor detection is on, the cycle of movement will stop if an object is in front, or on the sides, at a given distance. 
 Each of our gaits are pre-defined. Real-time interpolation of those pre-defined angles is computed so that each leg moves smoothly, ie a leg contains three servos, and synchronizes with the whole 18 servos. 
 @Jonas
-everything about the web serial and sensor handling
+everything about the web serial and sensor handling, what you did and why u did
 
 ## Challenges
 
@@ -53,25 +52,18 @@ everything about the web serial and sensor handling
     - One of the main challenges was trying to implement inverse kinematics (IK). While the math behind it was well-understood on paper, translating it to code was a bit more compilcated. The IK computations relied heavily on real-world measurements, such as the exact lengths of the leg segments and the position of the servos, and small differences made the leg movement inaccurate or unexpected. Tuning those parameters was particularly difficult, and we were short on time to completely dive in and properly understand what was wrong and how to fix it. We made compromises by gradually introducing motion interpolation and hardcoding the gaits we wanted, as explained on the last section.
 
 
-## Installation Instructions
+## Installation Requirements
 
 - Hardware requirements (e.g., components needed).
     - Electronics:
         - 18 servos (in our case it was servo SG90 but we would heavily recommand stronger ones)
-          ![SG90 Servo](images/servo9G.jpg)
         - 3 sensors(TOF400C) to place in front and on the sides
-          ![SG90 Servo](images/servo9G.jpg)
         - PCA 9685 PWM multiplexer to plug the servos (would advise to have two multiplexers instead of just one)
-          ![PCA9685 Multiplexer](images/PCA9685.jpg)
         - Esp32 Devkit V1 Board as a micro controller, or any esp32 that has WiFi
-          ![ESP32](images/esp32.jpg)
         - LiPo Battery 25C 1000mAh 2S
-          ![LiPo Battery](images/LiPo.jpg)
         - Protection Board for the battery (2 cell BMS)
-          ![Protection Board](images/ProtectionBoard.jpg)
         - Jst connectors to connect the protection board and the battery
         - LM2596 Buck Converter
-          ![Buck converter](images/buckConverter.jpg)
         - Cables and tape for the cable management (very important)
     - CAD components:
         - a base to hold the battery, 6 servos that will serve as the Coxas of the legs.
@@ -103,28 +95,45 @@ everything about the web serial and sensor handling
 
 ## Pinouts
 On Esp:
-        - two servos PMW are plugged in on pin 18 and 23 of the ESP
-        - SDA (pin 21) plugged to the multiplexer, and the sensors.
-        - SCL (pin 22) plugged to the multiplexer, and the sensors.
-        - 5V pin to power the esp
-        - GND pin from the esp to the power supply
-        
-Here is a picture of the circuit for additionnal help:
+  - two servos PMW are plugged in on pin 18 and 23 of the ESP
+  - SDA (pin 21) plugged to the multiplexer, and the sensors.
+  - SCL (pin 22) plugged to the multiplexer, and the sensors.
+  - 5V pin to power the esp
+  - GND pin from the esp to the power supply
+
+On the multiplexer:
+  - Connect the power's (-) to the (-) of the multiplexer
+  - Same for the (+)
+
+For the sensors:
+  - plug their SDA to the general SDA circuit
+  - plug their SCL to the general SCL circuit
+  - plug their (+) to the general (+) circuit
+  - plug their (-) to the general (-) circuit
+
+For the servos: plug them all on the multiplexer
+
+Here is a picture of the circuit for additionnal help. Please note that for the cables that use the breadboard, this means you need to solder them together or clips them together :
 ![Circuit Image](images/circuit.png)
         
 ## Usage Instructions
 
 Explain how to use your project. Include:
-
-- Code snippets for basic operations.
-- Instructions on how to run the project.
-- Any configuration settings that need to be adjusted.
+- Go on the wifi_credentials.h file
+- Input the name of the wifi you will share with your ESP32 (You must both be on the same wifi)
+- Put your wifi password
+- Upload the code on the ESP32
+- It will give you an IP adress: Copy paste it on your browser
+- You will now be on the Web App: 
+    - You can use the joystick to move around
+    - You have different movement categories that you may change with the button 'change movement type'
+    - Wether you are on AZERTY or QWERTZ, you can use THE WASD / ZQSD to move
+- Have fun!
 
 ## Troubleshooting
 
-Provide solutions to common issues that users might encounter. This can help users resolve problems without needing to contact you.
-
+There might be issues connecting to the ESP32 sometimes, it could be a port issue, if that is the case just look up and download 'CH340 driver'
 
 ## Acknowledgments
 
-Mention any resources, libraries, or individuals that helped you during the project
+We thank the assistants for their help, and we also thank Mehdi A. who was not our assistant but still helped us a lot <3
