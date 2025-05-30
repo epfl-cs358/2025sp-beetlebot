@@ -101,7 +101,9 @@ On Esp:
         - SCL (pin 22) plugged to the multiplexer, and the sensors.
         - 5V pin to power the esp
         - GND pin from the esp to the power supply
-
+        
+Here is a picture of the circuit for additionnal help:
+![Circuit Image](images/circuit.png)
         
 ## Usage Instructions
 
