@@ -1,84 +1,238 @@
+#include "main.h"
 #include <Adafruit_PWMServoDriver.h>
-#include <beetle_hdr.h>
-Adafruit_PWMServoDriver board1 = Adafruit_PWMServoDriver(0x40);
 
-#define SERVOMIN  125
-#define SERVOMAX  625
-#define SWEEP_DELAY 20  // ms between degree movements
-#define PWM_FREQ 60
+Adafruit_PWMServoDriver multiplexer = Adafruit_PWMServoDriver(0x40);
+AsyncWebServer server(80);
+String wifistr;
+char lastInput[3] = "C";
+int lastDists[3] = {0};
+bool satDown = false;
+int distSensorMin = 0;
+int distSensorMax = 150; 
+bool movementType = true; // if sets to true, the robot rotates on itself to get to the direction
+//false : goes in the direction without rotating, i.e. crabwalk / backwards
+bool sensorDetect = false;
 
-// Servo control structure for each leg
-struct Leg {
-  String name;
-  uint8_t coxaPin;
-  uint8_t femurPin;
-  uint8_t tibiaPin;
-  int coxaAngle;
-  int femurAngle;
-  int tibiaAngle;
-};
+// create an easy-to-use handler
+static AsyncWebSocketMessageHandler wsHandler;
 
-// Update leg initialization
-Leg legs[6] = {
-  {"rf", cRFCoxaPin, cRFFemurPin, cRFTibiaPinESP, COXAS_SIT_ANGLE, FEMURS_SIT_ANGLE, TIBIAS_SIT_ANGLE},
-  {"rm", cRMCoxaPin, cRMFemurPin, cRMTibiaPin, COXAS_SIT_ANGLE, FEMURS_SIT_ANGLE, TIBIAS_SIT_ANGLE},
-  {"rb", cRBCoxaPin, cRBFemurPin, cRBTibiaPin, COXAS_SIT_ANGLE, FEMURS_SIT_ANGLE, TIBIAS_SIT_ANGLE},
-  {"lf", cLFCoxaPin, cLFFemurPin, cLFTibiaPinESP, COXAS_SIT_ANGLE, FEMURS_SIT_ANGLE, TIBIAS_SIT_ANGLE},
-  {"lm", cLMCoxaPin, cLMFemurPin, cLMTibiaPin, COXAS_SIT_ANGLE, FEMURS_SIT_ANGLE, TIBIAS_SIT_ANGLE},
-  {"lb", cLBCoxaPin, cLBFemurPin, cLBTibiaPin, COXAS_SIT_ANGLE, FEMURS_SIT_ANGLE, TIBIAS_SIT_ANGLE}
-};
+// add it to the websocket server
+static AsyncWebSocket ws("/ws", wsHandler.eventHandler());
 
-Leg* currentLeg = &legs[3]; // Default to right middle (rm)
+leg lf = leg(multiplexer, lfCOffset, lfFOffset, lfTOffset, "lf", 0, 
+    servoPins[0][Coxa], servoPins[0][Femur], servoPins[0][Tibia]);
+leg rf = leg(multiplexer, rfCOffset, rfFOffset, rfTOffset, "rf", 1, 
+    servoPins[1][Coxa], servoPins[1][Femur], servoPins[1][Tibia]); 
+leg lm = leg(multiplexer, lmCOffset, lmFOffset, lmTOffset, "lm", 2, 
+    servoPins[2][Coxa], servoPins[2][Femur], servoPins[2][Tibia]);
+leg rm = leg(multiplexer, rmCOffset, rmFOffset, rmTOffset, "rm", 3, 
+    servoPins[3][Coxa], servoPins[3][Femur], servoPins[3][Tibia]);
+leg lb = leg(multiplexer, lbCOffset, lbFOffset, lbTOffset, "lb", 4, 
+    servoPins[4][Coxa], servoPins[4][Femur], servoPins[4][Tibia]);
+leg rb = leg(multiplexer, rbCOffset, rbFOffset, rbTOffset, "rb", 5, 
+    servoPins[5][Coxa], servoPins[5][Femur], servoPins[5][Tibia]);     
 
-// Function prototypes
-void initializeAllServos();
-void performWave();
-void performSweep(int servoIndex, int &currentAngle);
-void printHelp();
-void coordinatedSweep(uint8_t coxaPin, int coxaStart, int coxaEnd,
-                    uint8_t tibiaPin, int tibiaStart, int tibiaEnd,
-                    Leg &leg);
-void setServoAngle(uint8_t pin, int angle);
-void handleSerialInput();
-void handleKeyCommand(char key);
-void updateServo(uint8_t servoIndex, int step, int &angle);
-void updateServoDirect(int servoIndex, int newAngle, int &storage);
-void handleTextCommand(String input);
-void smoothMove(int servoIndex, int targetAngle, int &currentAngle, int stepSize);
-int angleToPulse(int ang);
-void handleSweepCommand(String input);
-void printCurrentLegAngles();
-void moveToStandPosition();
-void moveToSitPosition();
-void moveToStandPosition();
-void setServoAngle(uint8_t pin, int angle);
+//Default for manual control of joints
+unsigned int offsetAngle = 5;
 
-void setup() {
-  Serial.begin(9600);
-  
-  // Initialize PCA9685
-  board1.begin();
-  board1.setPWMFreq(PWM_FREQ);
+static bool multiplexerOk = true;
+static unsigned long lastCheck = 0;
 
-  // Initialize ESP32 PWM channels for direct-connected servos
-  ledcSetup(0, 50, 16); // Channel 0, 50Hz, 16-bit resolution
-  ledcSetup(1, 50, 16); // Channel 1, 50Hz, 16-bit resolution
-  ledcAttachPin(cLFTibiaPinESP, 0); // Left Front Tibia
-  ledcAttachPin(cRFTibiaPinESP, 1); // Right Front Tibia
-  
-  initializeAllServos();
-  printHelp();
+movements motion = movements(lf, rf, lm, rm, lb,rb, multiplexer, 15);
+leg *current = motion.current;
+
+String processor(const String& var){
+  Serial.println(var);
+  if(var == "ADDR"){
+    return wifistr;
+  }  
+  return String();
+}
+
+void setup () {
+    Serial.begin(9600);
+    
+    if (WEB_SERIAL) {
+        //To check if the password and ssid are correct
+        Serial.println(PROGMEM "Connecting to WiFi...");
+        Serial.println(WIFI_SSID);
+        
+        WiFi.mode(WIFI_STA);
+        WiFi.begin(WIFI_SSID, WIFI_PASS);
+        
+        if (WiFi.waitForConnectResult() != WL_CONNECTED) {
+        Serial.printf(PROGMEM "WiFi Failed!\n");
+        return;
+        }
+        
+        // WebSerial is accessible at "<IP Address>/webserial" from your browser
+        Serial.print(PROGMEM "IP Address: ");
+        Serial.println(WiFi.localIP());
+        wifistr = WiFi.localIP().toString();
+
+        if(!SPIFFS.begin(true)){
+            Serial.println(PROGMEM "An Error has occurred while mounting SPIFFS");
+            return;
+        }
+        
+        server.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
+            request->send(SPIFFS, "/index.html", String(), false, processor);});
+
+        server.on("/joy.js", HTTP_GET, [](AsyncWebServerRequest *request){
+            request->send(SPIFFS, "/joy.js","text/javascript");});
+
+        server.on("/style.css", HTTP_GET, [](AsyncWebServerRequest *request){
+            request->send(SPIFFS, "/style.css","text/css");});
+
+        server.on("/favicon.ico", HTTP_GET, [](AsyncWebServerRequest *request){
+            request->send(SPIFFS, "/favicon.ico","image/x-icon");});
+
+        server.on("/bot.png", HTTP_GET, [](AsyncWebServerRequest *request){
+            request->send(SPIFFS, "/bot.png","image/png");});
+
+        wsHandler.onMessage([](AsyncWebSocket *server, AsyncWebSocketClient *client, const uint8_t *data, size_t len) {
+            if (strcmp((const char*) data, "MC") == 0) {
+                movementType = !movementType;
+            } else if (strcmp((const char*) data, "DE") == 0) {
+                sensorDetect = !sensorDetect;
+            } else memcpy(lastInput, data, 2);
+        });
+
+
+    server.addHandler(&ws);
+    server.begin();
+    }
+
+    //Sensors code
+    Wire.begin();
+    Wire.setClock(400000); // use 400 kHz I2C
+    forceSetup(); // after, the sensors should be all setup
+    Serial.println("Sensors connected successfully! ");
+
+    multiplexer.begin();
+    multiplexer.setPWMFreq(60);
+
+    ledcSetup(0, 50, 16);
+    ledcSetup(1, 50, 16); 
+    ledcAttachPin(servoPins[0][Tibia], 0); 
+    ledcAttachPin(servoPins[1][Tibia], 1); 
+
+    motion.initializeAllServos(standAngle[Coxa], standAngle[Femur], standAngle[Tibia]);
+    printHelp();
+}
+
+bool isMultiplexerConnected(uint8_t address = 0x40) {
+    Wire.beginTransmission(address);
+    return (Wire.endTransmission() == 0);
 }
 
 void loop() {
-  handleSerialInput();
+    for(int i = 0; i < 3; ++i){
+        int val = checkSensor(i);
+        if (val > 0) {
+            lastDists[i] = val;
+        } else if (val == -1) {
+            lastDists[i] = 0;
+        }
+    }
+
+    ws.cleanupClients();
+    sendJson();
+
+    if (WEB_SERIAL) {
+        switch (lastInput[0]){
+            case 'N':
+                if (satDown || (sensorDetect && lastDists[1]<=distSensorMax && lastDists[1]>distSensorMin)) break;
+                if (lastInput[1] == '\0') {
+                    motion.forward();
+                } else if (lastInput[1] == 'E') {
+                    motion.forwardCurve(1, 0.5);
+                } else if (lastInput[1] == 'W') {
+                    motion.forwardCurve(0, 0.5);
+                }
+                break;
+            case 'S':
+                if (satDown) break;
+                if (lastInput[1] == '\0') {
+                    if (movementType) {
+                        motion.rotation(1, 7);
+                    } else {
+                        motion.backward();
+                    }
+                } else if (lastInput[1] == 'E') {
+                    if (movementType) {
+                        motion.rotation(1, 4);
+                    } else {
+                        motion.backwardCurve(1, 0.5);
+                    }
+                } else if (lastInput[1] == 'W') {
+                    if (movementType) {
+                        motion.rotation(0, 4);
+                    } else {
+                        motion.backwardCurve(0, 0.5);
+                    }
+                }
+                break;
+            case 'E':
+                if (satDown || (sensorDetect && lastDists[0]<=distSensorMax && lastDists[0]>distSensorMin)) break;
+                if (lastInput[1] == '\0') {
+                    if (movementType) {
+                        motion.rotation(1, 4);
+                    } else {
+                        motion.sideways(0);
+                    }
+                }
+                break;
+            case 'W':
+                if (satDown || (sensorDetect && lastDists[2]<=distSensorMax && lastDists[2]>distSensorMin)) break;
+                if (lastInput[1] == '\0') {
+                    if (movementType) {
+                        motion.rotation(0, 4);
+                    } else {
+                        motion.sideways(1);
+                    }
+                }
+                break;
+            case 'U': 
+                if (satDown) {
+                    motion.standUp();
+                    satDown = !satDown;
+                } else {
+                    motion.sitDown();
+                    satDown = !satDown;
+                }
+                break;
+            case 'B': 
+                if (satDown) break;
+                motion.wave();
+                break;
+            default:
+                sleep(1);
+                break;
+        }
+    } else {
+        handleSerialInput();
+    }
+
+    
 }
 
+void handleWifiSerialInput(const uint8_t *data, size_t len) {
+    String input = String((const char*) data);
+    input.trim();
+
+    if (input.length() == 1) {
+        handleKeyCommand(input.charAt(0));
+    } else {
+        handleTextCommand(input);
+    }
+}
+
+// Depreciated serial input function, left for reference
 void handleSerialInput() {
   if (Serial.available() > 0) {
     String input = Serial.readStringUntil('\n');
     input.trim();
-    
     if (input.length() == 1) {
       handleKeyCommand(input.charAt(0));
     } else {
@@ -87,232 +241,165 @@ void handleSerialInput() {
   }
 }
 
-void handleKeyCommand(char key) {
-  switch(key) {
-    case 'q': updateServo(currentLeg->coxaPin, 5, currentLeg->coxaAngle); break;
-    case 'a': updateServo(currentLeg->coxaPin, -5, currentLeg->coxaAngle); break;
-    case 'w': updateServo(currentLeg->femurPin, 5, currentLeg->femurAngle); break;
-    case 's': updateServo(currentLeg->femurPin, -5, currentLeg->femurAngle); break;
-    case 'e': updateServo(currentLeg->tibiaPin, 5, currentLeg->tibiaAngle); break;
-    case 'd': updateServo(currentLeg->tibiaPin, -5, currentLeg->tibiaAngle); break;
-  }
-}
 
 void handleTextCommand(String input) {
-  input.toLowerCase();
-  
-  // Check for leg selection first
-  for(uint8_t i = 0; i < 6; i++) {
-    if(input == legs[i].name) {
-      currentLeg = &legs[i];
-      Serial.print("Selected leg: ");
-      Serial.println(currentLeg->name);
-      return;
-    }
-  }
-
-  if(input == "wave") {
-    performWave();
-  }
-  else if(input == "help") {
-    printHelp();
-  }
-  else if(input == "stand") {
-    moveToStandPosition();
-  }
-  else if(input == "sit") {
-    moveToSitPosition();
-  }
-  else if(input.endsWith("sweep")) {
-    handleSweepCommand(input);
-  }
-}
-
-void handleSweepCommand(String input) {
-  input.toLowerCase();
-  
-  if (input == "coxa sweep") {
-    performSweep(currentLeg->coxaPin, currentLeg->coxaAngle);
-  }
-  else if (input == "femur sweep") {
-    performSweep(currentLeg->femurPin, currentLeg->femurAngle);
-  }
-  else if (input == "tibia sweep") {
-    performSweep(currentLeg->tibiaPin, currentLeg->tibiaAngle);
-  }
-  else {
-    Serial.println("Unknown sweep command. Use 'coxa sweep', 'femur sweep', or 'tibia sweep'.");
-  }
-}
-
-void moveToStandPosition() {
-  for(uint8_t i = 0; i < 6; i++) {
-    smoothMove(legs[i].coxaPin, COXAS_STAND_ANGLE, legs[i].coxaAngle, 30);
-    smoothMove(legs[i].femurPin, FEMURS_STAND_ANGLE, legs[i].femurAngle, 30);
-    smoothMove(legs[i].tibiaPin, TIBIAS_STAND_ANGLE, legs[i].tibiaAngle, 30);
-  }
-}
-
-void moveToSitPosition() {
-  for(uint8_t i = 0; i < 6; i++) {
-    smoothMove(legs[i].coxaPin, COXAS_SIT_ANGLE, legs[i].coxaAngle, 30);
-    smoothMove(legs[i].femurPin, FEMURS_SIT_ANGLE, legs[i].femurAngle, 30);
-    smoothMove(legs[i].tibiaPin, TIBIAS_SIT_ANGLE, legs[i].tibiaAngle, 30);
-  }
-}
-
-
-void performWave() {
-  // Save original positions of the middle legs
-  Leg* waveLegs[] = {&legs[1], &legs[4]}; // RM and LM legs
-  int originalAngles[2][3]; // [rm, lm][coxa, femur, tibia]
-
-  // Store original positions
-  for(uint8_t i = 0; i < 2; i++) {
-    originalAngles[i][0] = waveLegs[i]->coxaAngle;
-    originalAngles[i][1] = waveLegs[i]->femurAngle;
-    originalAngles[i][2] = waveLegs[i]->tibiaAngle;
-  }
-
-  // Move to wave starting position
-  for(auto leg : waveLegs) {
-    smoothMove(leg->femurPin, 100, leg->femurAngle, 30);
-  }
-  
-  // Wave 3 times
-  for(uint8_t i = 0; i < 3; i++) {
-    for(auto leg : waveLegs) {
-      coordinatedSweep(leg->coxaPin, 130, 50, leg->tibiaPin, 45, 25, *leg);
-    }
-    for(auto leg : waveLegs) {
-      coordinatedSweep(leg->coxaPin, 50, 130, leg->tibiaPin, 25, 45, *leg);
-    }
-  }
-
-  // Return to original positions
-  for(uint8_t i = 0; i < 2; i++) {
-    smoothMove(waveLegs[i]->coxaPin, originalAngles[i][0], waveLegs[i]->coxaAngle, 30);
-    smoothMove(waveLegs[i]->femurPin, originalAngles[i][1], waveLegs[i]->femurAngle, 30);
-    smoothMove(waveLegs[i]->tibiaPin, originalAngles[i][2], waveLegs[i]->tibiaAngle, 30);
-  }
-}
-
-void coordinatedSweep(uint8_t coxaPin, int coxaStart, int coxaEnd,
-                      uint8_t tibiaPin, int tibiaStart, int tibiaEnd,
-                      Leg &leg) {
-  const uint8_t steps = 20;
-  for(uint8_t i = 0; i <= steps; i++) {
-  float ratio = (float)i / steps;
-
-  int coxa = coxaStart + (coxaEnd - coxaStart) * ratio;
-  int tibia = tibiaStart + (tibiaEnd - tibiaStart) * ratio;
-
-  setServoAngle(coxaPin, coxa);
-  setServoAngle(tibiaPin, tibia);
-  leg.coxaAngle = coxa;
-  leg.tibiaAngle = tibia;
-
-  delay(SWEEP_DELAY);
-  }
-}
-
-void smoothMove(int servoIndex, int targetAngle, int &currentAngle, int stepSize) {
-  while(abs(currentAngle - targetAngle) > stepSize) {
-    currentAngle += (targetAngle > currentAngle) ? stepSize : -stepSize;
-    board1.setPWM(servoIndex, 0, angleToPulse(currentAngle));
-    delay(SWEEP_DELAY);
-  }
-  currentAngle = targetAngle;  // Ensure final position is exact
-  board1.setPWM(servoIndex, 0, angleToPulse(currentAngle));
-}
-
-
-void performSweep(int servoIndex, int &currentAngle) {
-  int originalAngle = currentAngle;
-  
-  // Sweep down to 0°
-  for (int angle = originalAngle; angle >= 0; angle--) {
-    updateServoDirect(servoIndex, angle, currentAngle);
-    delay(SWEEP_DELAY);
-  }
-  
-  // Sweep up to 180°
-  for (int angle = 0; angle <= 180; angle++) {
-    updateServoDirect(servoIndex, angle, currentAngle);
-    delay(SWEEP_DELAY);
-  }
-  
-  // Return to original position
-  for (int angle = 180; angle >= originalAngle; angle--) {
-    updateServoDirect(servoIndex, angle, currentAngle);
-    delay(SWEEP_DELAY);
-  }
-  
-  printCurrentLegAngles();
-}
-
-void setServoAngle(uint8_t pin, int angle) {
-  if(pin == cLFTibiaPinESP || pin == cRFTibiaPinESP) { // ESP32 direct pins
-    // Convert angle to ESP32 LEDC compatible pulse width
-    uint32_t pulse = map(angle, 0, 180, 500, 2500); // Convert angle to microseconds
-    ledcWrite((pin == cLFTibiaPinESP) ? 0 : 1, pulse * 65536 / 20000); // Convert to duty cycle
-  }
-  else if(pin < 16) { // PCA9685 pins
-    board1.setPWM(pin, 0, angleToPulse(angle));
-  }
-}
-
-void updateServo(uint8_t pin, int step, int &angle) {
-  int newAngle = constrain(angle + step, 0, 180);
-  if(newAngle != angle) {
-    angle = newAngle;
-    setServoAngle(pin, angle);
-    printCurrentLegAngles(); // Changed from printCurrentLeg()
-  }
-}
-
-void updateServoDirect(int servoIndex, int newAngle, int &storage) {
-  storage = newAngle;
-  board1.setPWM(servoIndex, 0, angleToPulse(newAngle));
-}
-
-void initializeAllServos() {
-  for(uint8_t i = 0; i < 6; i++) {
-    setServoAngle(legs[i].coxaPin, COXAS_SIT_ANGLE);
-    setServoAngle(legs[i].femurPin, FEMURS_SIT_ANGLE);
-    setServoAngle(legs[i].tibiaPin, TIBIAS_SIT_ANGLE);
+    input.toLowerCase();
     
-    legs[i].coxaAngle = COXAS_SIT_ANGLE;
-    legs[i].femurAngle = FEMURS_SIT_ANGLE;
-    legs[i].tibiaAngle = TIBIAS_SIT_ANGLE;
+    for(uint8_t i = 0; i < 6; i++) {
+        if(input == motion.legs[i]->name) {
+          current = motion.legs[i];
+          Sprint(PROGMEM "Selected leg: ");
+          Sprintln(current->name.c_str());
+          return;
+        }
+    }
+    
+    if (input.startsWith(PROGMEM "offset ")) {
+        String offsetValue = input.substring(7); // Extract the value after "offset "
+        int newOffset = offsetValue.toInt(); // Convert to integer
+        if (newOffset > 0) { // Ensure it's a valid positive number
+            offsetAngle = newOffset;
+            char temp[5] = {0};
+            itoa(offsetAngle, temp, 10);
+            Sprint(PROGMEM "Offset angle set to: ");
+            Sprintln(temp);
+        } else {
+            Sprintln(PROGMEM "Invalid offset value. Please provide a positive number.");
+        }
+    } else if (input == "forward") {
+        motion.forward();
+    } else if (input == "backward") {
+        motion.backward();
+    } else if(input == "help") {
+        printHelp();
+    } else if(input == "stand") {
+        motion.initializeAllServos(standAngle[Coxa], standAngle[Femur], standAngle[Tibia]);
+    } else if(input == "sit") {
+        motion.initializeAllServos(sitAngle[Coxa], sitAngle[Femur], sitAngle[Tibia]);
+    } else if(input == "test set") {
+        motion.initializeAllServos(setAngle[Coxa], setAngle[Femur], setAngle[Tibia]);
+    } else if(input == "stand up") {
+        motion.standUp();
+    } else if (input == "sit down") {
+        motion.sitDown();
+    } else if(input == "rot cw") {
+        motion.rotation(1, 5);
+    } else if(input == "rot ccw") {
+        motion.rotation(0, 5);
+    } else if(input == "forw cw") {
+        motion.forwardCurve(1, 0.7);
+    } else if(input == "forw ccw") {
+        motion.forwardCurve(0, 0.5);
+    } else if(input == "back ccw") {
+        motion.backwardCurve(0, 0.5);
+    } else if(input == "back cw") {
+        motion.backwardCurve(1, 0.5);
+    } else if(input == "left") {
+        motion.sideways(1);
+    } else if(input == "right") {
+        motion.sideways(0);
+    }  else if (input == "wave"){
+        motion.wave();
+    } else {
+        Sprintln(PROGMEM "Unknown command. Type 'help' for a list of commands.");
+    }
   }
-  delay(500);
-}
 
-void printCurrentLegAngles() {
-  Serial.print(currentLeg->name);
-  Serial.print(" - Coxa:");
-  Serial.print(currentLeg->coxaAngle);
-  Serial.print("°, Femur:");
-  Serial.print(currentLeg->femurAngle);
-  Serial.print("°, Tibia:");
-  Serial.print(currentLeg->tibiaAngle);
-  Serial.println("°");
+void handleKeyCommand(char key) {
+    switch(key) {
+      case 'q': 
+        current->setAngle(current->pinC, motion.currAngles[current->index][Coxa] + offsetAngle);
+        motion.currAngles[current->index][Coxa]= motion.currAngles[current->index][Coxa] + offsetAngle;
+        break;
+      case 'a': 
+        current->setAngle(current->pinC, motion.currAngles[current->index][Coxa] - offsetAngle); 
+        motion.currAngles[current->index][Coxa]= motion.currAngles[current->index][Coxa] -offsetAngle;
+        break;
+      case 'w': 
+        current->setAngle(current->pinF, motion.currAngles[current->index][Femur] + offsetAngle); 
+        motion.currAngles[current->index][Femur]= motion.currAngles[current->index][Femur] + offsetAngle;
+        break;
+      case 's': 
+        current->setAngle(current->pinF, motion.currAngles[current->index][Femur] - offsetAngle); 
+        motion.currAngles[current->index][Femur]= motion.currAngles[current->index][Femur] - offsetAngle;
+        break;
+      case 'e': 
+        if (current->pinT >= 0 && current->pinT <= 15) { // these tibia servos are on the 16 pin multiplexer
+            current->setAngle(current->pinT, motion.currAngles[current->index][Tibia] +offsetAngle); 
+        } else {
+            current->setAngle(current->pinT, motion.currAngles[current->index][Tibia] +offsetAngle, current->index); 
+        }
+        motion.currAngles[current->index][Tibia]= motion.currAngles[current->index][Tibia] + offsetAngle;
+        break;
+      case 'd': 
+        if (current->pinT >= 0 && current->pinT <= 15) {
+            current->setAngle(current->pinT, motion.currAngles[current->index][Tibia] -offsetAngle); 
+        } else {
+            current->setAngle(current->pinT, motion.currAngles[current->index][Tibia] -offsetAngle, current->index); 
+        }
+        motion.currAngles[current->index][Tibia]= motion.currAngles[current->index][Tibia] -offsetAngle ;
+        break;
+    }
+    Sprint(current->name.c_str());
+    Sprint(" - Coxa:");
+    char temp[5] = {0};
+    itoa(motion.currAngles[current->index][Coxa], temp, 10);
+    Sprint(temp);
+    Sprint("°, Femur:");
+    itoa(motion.currAngles[current->index][Femur], temp, 10); // itoa creates null-terminated string so no need to clean
+    Sprint(temp);
+    Sprint("°, Tibia:");
+    itoa(motion.currAngles[current->index][Tibia], temp, 10);
+    Sprint(temp);
+    Sprintln("°");
 }
 
 
 void printHelp() {
-  Serial.println("\nServo Control System");
-  Serial.println("Quick commands (single key):");
-  Serial.println("Q/A - Coxa +/-");
-  Serial.println("W/S - Femur +/-");
-  Serial.println("E/D - Tibia +/-");
-  Serial.println("\nAdvanced commands:");
-  Serial.println("<joint> sweep - Full range motion");
-  Serial.println("  (coxa|femur|tibia) sweep");
-  Serial.println("wave - Beetlebot waves at you animation");
+    Sprintln(PROGMEM "\nServo Control System:");
+    Sprintln(PROGMEM "Quick commands (single key):");
+    Sprintln(PROGMEM "Q/A - Coxa +/-");
+    Sprintln(PROGMEM "W/S - Femur +/-");
+    Sprintln(PROGMEM "E/D - Tibia +/-");
+    Sprintln(PROGMEM "\nAdvanced commands:");
+    Sprintln(PROGMEM "stand - Beetlebot in stand position [not a smooth movement]");
+    Sprintln(PROGMEM "sit - Beetlebot in sit position [not a smooth movement]");
+    Sprintln(PROGMEM "stand up - Beetlebot from sit to stand");
+    Sprintln(PROGMEM "sit down - Beetlebot from stand to sit");
+    Sprintln(PROGMEM "forward - tripod");
+    Sprintln(PROGMEM "rot cw - clockwise tripod gait rotation");
+    Sprintln(PROGMEM "rot ccw - counterclockwise tripod gait rotation");
+    Sprintln(PROGMEM "forw cw - forward curve clockwise tripod gait");
+    Sprintln(PROGMEM "forw ccw - forward curve counterclockwise tripod gait");
+    Sprintln(PROGMEM "back cw - backward curve clockwise tripod gait");
+    Sprintln(PROGMEM "back ccw - backward curve counterclockwise tripod gait");
+    Sprintln(PROGMEM "side left - sideways tripod gait to the left");
+    Sprintln(PROGMEM "side right - sideways tripod gait to the right");
 }
 
-int angleToPulse(int ang) {
-  return map(ang, 0, 180, SERVOMIN, SERVOMAX);
+void Sprintln(const char* msg) {
+    if (WEB_SERIAL) {
+        ws.printfAll(msg);
+    } else {
+        Serial.println(msg);
+    }
+}
+
+void Sprint(const char* msg) {
+    if (WEB_SERIAL) {
+        ws.printfAll(msg);
+    } else {
+        Serial.print(msg);
+    }
+    
+}
+
+void sendJson() {
+    String temp = String(R"({"act":")") + String(lastInput) +
+        String(R"(", "movement_type":)") + String(movementType) + 
+        String(R"(, "sensorDe":)") + String(sensorDetect) + 
+        String(R"(, "dist0":)") + String(lastDists[0]) + 
+        String(R"(, "dist1":)") + String(lastDists[1]) + 
+        String(R"(, "dist2":)") + String(lastDists[2]) +  String(R"(})");
+    ws.printfAll(temp.c_str());
 }

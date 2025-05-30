@@ -1,0 +1,35 @@
+.col {
+  float: left;
+  width: 33.33%;
+}
+
+.row:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+#kb input {
+    padding: 10%;
+}
+
+fieldset {
+  width: fit-content;
+}
+
+#sensordrawing {
+    position: relative;
+    width: 400px;
+    height: 400px;
+}
+
+#sensordrawing canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    border:1px solid black;
+}
+
+#bot {
+    z-index: 1;
+}

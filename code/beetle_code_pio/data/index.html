@@ -1,0 +1,304 @@
+<!DOCTYPE html><html><head>
+    <title>Ultimate Weapon</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+
+    <link rel="stylesheet" href="style.css">
+    <script src="joy.js"></script>
+</head><body>
+<div class="row">
+    <div id="controls" class="col">
+        <div id='kb'>
+            <h1>Keyboard controls</h1>
+            <input id='box' type='text' value="" oninput='inputfunc()' onkeyup='keyupfunc()' maxlength='1'>
+            <p>Use the keys around  <strong>S</strong> like the joystick, and S to sit/stand ! </p>
+            <fieldset>
+                <legend>Select your keyboard disposition:</legend>
+                <div>
+                    <input type="radio" id="qwertz" name="disposition" value="qwertz" checked />
+                    <label for="qwertz">qwertz</label>
+                </div>
+
+                <div>
+                    <input type="radio" id="azerty" name="disposition" value="azerty"/>
+                    <label for="azerty">azerty</label>
+                </div>
+            </fieldset>
+        </div>
+
+        <input type="button" value="change movement type" onclick="switchMessage()">
+        <p id="movementStatus">Movement type: Rotational</p>
+        <input type="button" value="toggle sensor detection" onclick="sensorMessage()">
+        <p id="sensorStatus">Sensor detection: Off</p>
+
+        <div id='js'>
+            <h1>Joystick controls</h1>
+            <div id="joyDiv" style="width:200px;height:200px;margin-bottom:20px;"></div>
+        </div>
+    </div>
+
+    <div id="outputs" class="col">
+        <p id='inputPrint'>init</p>
+        <ul id='msglist'></ul>
+        <div id="movementBox" style="
+            margin-top: 20px;
+            padding: 12px;
+            border: 2px solid #444;
+            background-color: #eef;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: bold;
+            width: fit-content;
+            max-width: 300px;
+            margin-left: auto;
+            margin-right: auto;
+        ">
+            <strong>Movement info: Rotational</strong><br>
+                - <strong>W</strong> / <strong>N</strong> on JS : Forward<br>
+                - <strong>E</strong> / <strong>NE</strong> on JS : Forward curve right <br>
+                - <strong>Q</strong>/ <strong>NW</strong> on JS : Forward curve left <br>
+                - <strong>D</strong> / <strong>E</strong> on JS : Rotate facing East <br>
+                - <strong>A</strong>  / <strong>W</strong> on JS : Rotate facing West<br>
+                - <strong>X</strong> / <strong>S</strong> on JS : Rotate facing South<br>
+                - <strong>C</strong> / <strong>SE</strong> on JS : Rotate facing Southeast<br>
+                - <strong>Y</strong> / <strong>SW</strong> on JS : Rotate facing Southwest<br>
+                - <strong>S</strong> : Toggle Sit down /Stand up<br><br>
+                - <strong>R</strong> : Wave <br><br>
+            Toggle 'change movement type' to get translational movement!
+        </div>
+    </div>
+
+    <div id="sensordrawing" class="col">
+        <canvas id="bot" width="400" height="400">
+            Placerholder
+        </canvas>
+        <canvas id="detections" width="400" height="400">
+            Placeholder
+        </canvas>
+    </div>
+</div> 
+    <script>
+        var ws = new WebSocket('ws://%ADDR%/ws');
+        var keydown = false;
+        var lastJsVal = "C";
+        var inField = document.getElementById("box");
+        var inPrint = document.getElementById("inputPrint");
+        var msgList = document.getElementById("msglist");
+        var kbgroup = document.getElementById("kb");
+        var qwertzDis = document.getElementById("qwertz");
+        var tsgroup = document.getElementById("js");
+        var sensorDist = [0,0,0]; // will be drawn, values should be between 0 to w/2 or h/2
+        var movementType = true;
+        var sensorDetect = false;
+        
+        var joy = new JoyStick('joyDiv');
+        
+        ws.onmessage = function(event) {
+            json = JSON.parse(event.data);
+            var newEntry = document.createElement('li');
+            newEntry.appendChild(document.createTextNode(json.act));
+            msgList.appendChild(newEntry);
+            if (msgList.getElementsByTagName('li').length > 10) {
+                msgList.querySelector('li').remove();
+            }
+
+            sensorDist = [Math.min(json.dist0/2, 200), Math.min(json.dist1/2, 200), Math.min(json.dist2/2, 200)];
+            movementType = json.movement_type;
+            sensorDetect = json.sensorDe;
+
+        };
+
+        // keyboard
+        function inputfunc() {
+            if (!keydown) {
+                dir = "";
+
+                // we output the same values as the joystick to simplify
+                if (qwertzDis.checked) {
+                    switch (inField.value) {
+                        case "w":
+                            dir = "N";
+                            break;
+                        case "e":
+                            dir = "NE";
+                            break;
+                        case "d":
+                            dir = "E";
+                            break;
+                        case "c":
+                            dir = "SE";
+                            break;
+                        case "x":
+                            dir = "S";
+                            break;
+                        case "y":
+                            dir = "SW";
+                            break;
+                        case "a":
+                            dir = "W";
+                            break;
+                        case "q":
+                            dir = "NW";
+                            break;
+                        case "s": 
+                            dir = "U";
+                            break;
+                        case "r":
+                            dir = "B";
+                    }
+                } else {
+                    switch (inField.value) {
+                        case "z":
+                            dir = "N";
+                            break;
+                        case "e":
+                            dir = "NE";
+                            break;
+                        case "d":
+                            dir = "E";
+                            break;
+                        case "c":
+                            dir = "SE";
+                            break;
+                        case "x":
+                            dir = "S";
+                            break;
+                        case "w":
+                            dir = "SW";
+                            break;
+                        case "q":
+                            dir = "W";
+                            break;
+                        case "a":
+                            dir = "NW";
+                            break;
+                        case "s": 
+                            dir = "U";
+                            break;
+                        case "r":
+                            dir = "B";
+                    }
+                }
+                if (dir != "") { // only send if its a direction
+                    inPrint.innerHTML = dir;
+                    ws.send(dir);
+                }
+            }
+            inField.value = "";
+            keydown = true;
+        }
+
+        function keyupfunc() {
+            inPrint.innerHTML = "C";
+            ws.send("C");
+            keydown = false;
+        }
+
+        function switchMessage() {
+            movementType = !movementType;
+            ws.send("MC");
+            document.getElementById("movementStatus").innerText = "Movement type: " + (movementType ? "Rotational" : "Translational");
+
+            const movementBox = document.getElementById("movementBox");
+            if (movementType) {
+                movementBox.innerHTML = "<strong>Movement info: Rotational</strong><br>" +
+                "- <strong>W</strong> / <strong>N</strong> on JS : Forward<br>" +
+                "- <strong>E</strong> / <strong>NE</strong> on JS : Forward curve right <br>" +
+                "- <strong>Q</strong>/ <strong>NW</strong> on JS : Forward curve left <br>" +
+                "- <strong>D</strong> / <strong>E</strong> on JS : Rotate facing East <br>" +
+                "- <strong>A</strong>  / <strong>W</strong> on JS : Rotate facing West<br>" +
+                "- <strong>X</strong> / <strong>S</strong> on JS : Rotate facing South<br>" +
+                "- <strong>C</strong> / <strong>SE</strong> on JS : Rotate facing Southeast<br>" +
+                "- <strong>Y</strong> / <strong>SW</strong> on JS : Rotate facing Southwest<br>" +
+                "- <strong>S</strong> : Toggle Sit down /Stand up<br><br>" +
+                "- <strong>R</strong> : Wave <br><br>" +
+            "Toggle 'change movement type' to get translational movement!";
+            } else {
+                movementBox.innerHTML = "<strong>Movement info: Rotational</strong><br>" +
+                "- <strong>W</strong> / <strong>N</strong> on JS : Forward<br>" +
+                "- <strong>E</strong> / <strong>NE</strong> on JS : Forward curve right <br>" +
+                "- <strong>Q</strong>/ <strong>NW</strong> on JS : Forward curve left <br>" +
+                "- <strong>D</strong> / <strong>E</strong> on JS : Sideway right <br>" +
+                "- <strong>A</strong>  / <strong>W</strong> on JS : Sideway left <br>" +
+                "- <strong>X</strong> / <strong>S</strong> on JS : Backward <br>" +
+                "- <strong>C</strong> / <strong>SE</strong> on JS : Backward curve right <br>" +
+                "- <strong>Y</strong> / <strong>SW</strong> on JS : Backward curve left <br>" +
+                "- <strong>S</strong> : Toggle Sit down /Stand up<br><br>" +
+                "- <strong>R</strong> : Wave <br><br>" +
+            "Toggle 'change movement type' to get rotational movement!";
+            }
+        }
+
+        function sensorMessage() {
+            sensorDetect = !sensorDetect; // Toggle local variable
+            ws.send("DE");
+            document.getElementById("sensorStatus").innerText = "Sensor detection: " + (sensorDetect ? "On" : "Off");
+        }
+
+        // joystick
+        setInterval(function(){
+             if (lastJsVal != joy.GetDir()) {
+                lastJsVal = joy.GetDir();
+                inPrint.innerHTML = lastJsVal;
+                ws.send(lastJsVal);
+             }
+            }, 500);
+
+
+
+        // drawings
+        const w = 400;
+        const h = 400;
+        const center = (w/2, h/2);
+        const blockOffset = 50;
+
+        const sensors = document.getElementById("detections");
+        const sctx = sensors.getContext("2d");
+        setInterval(update, 500);
+            x = 10;
+            function update() {
+                sctx.fillStyle = "yellow";
+                sctx.clearRect(0, 0, w, h);
+                sctx.beginPath();
+                //right
+                sctx.moveTo(w/2, h/2);
+                sctx.lineTo(w, h*3/8+x);
+                sctx.lineTo(w, h*5/8+x);
+                sctx.closePath();
+                sctx.fill();
+                //left
+                sctx.beginPath();
+                sctx.moveTo(w/2, h/2);
+                sctx.lineTo(0, h*3/8-x);
+                sctx.lineTo(0, h*5/8-x);
+                sctx.closePath();
+                sctx.fill();
+                //top
+                sctx.beginPath();
+                sctx.moveTo(w/2, h/2);
+                sctx.lineTo(w*3/8+x, 0);
+                sctx.lineTo(w*5/8+x, 0);
+                sctx.closePath();
+                sctx.fill();
+                x = -x;
+
+                //blocks
+                sctx.fillStyle = "black";
+                //left
+                if (sensorDist[0] > 0) {
+                    sctx.fillRect(w/2 - sensorDist[0] - blockOffset/2, h/2 - blockOffset/2, blockOffset, blockOffset);
+                }
+                if (sensorDist[1] > 0) {
+                    sctx.fillRect(w/2 - blockOffset/2, h/2 - sensorDist[1] - blockOffset/2, blockOffset, blockOffset);
+                }
+                if (sensorDist[0] > 0) {
+                    sctx.fillRect(w/2 + sensorDist[1] - blockOffset/2, h/2 - blockOffset/2, blockOffset, blockOffset);
+                }
+            }
+
+            make_bot();
+            function make_bot() {
+                img = new Image();
+                img.src = 'bot.png';
+                img.onload = function() {document.getElementById('bot').getContext('2d').drawImage(img, w/2 - 25, h/2 - 30, 50, 60);};
+            }
+</script></body></html>
