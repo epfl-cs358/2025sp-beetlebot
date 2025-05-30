@@ -147,4 +147,8 @@ There might be issues connecting to the ESP32 sometimes, it could be a port issu
 
 ## Acknowledgments
 
+We'd like to thank all the servos and other components that had to die and/or suffer for this project to come to life! 
+
+![Group Photo](images/group_photo.jpg)
+
 We thank all of our TAs and the teacher, especially Pinar Oray, Federico Stella and Mehdi Alaoui. 
