@@ -50,6 +50,7 @@ The webpage and all of its content is loaded on the flash memory with SPIFFS, wh
     - Another hardware challenge was the cable management. Indeed, we were facing a trio of cables for each servos, along with cables for the multiplexer, the battery, the sensors and the ESP32, totalling with a strong ~50 cables. We managed to make some of them fit inside the base, but the biggest problems was the cables that had to stay outside of the base since the multiplexer was on the lid. We ended up tying the servo cables together so they would not be everywhere around our hexapod.  
 - Software:
     - One of the main challenges was trying to implement inverse kinematics (IK). While the math behind it was well-understood on paper, translating it to code was a bit more compilcated. The IK computations relied heavily on real-world measurements, such as the exact lengths of the leg segments and the position of the servos, and small differences made the leg movement inaccurate or unexpected. Tuning those parameters was particularly difficult, and we were short on time to completely dive in and properly understand what was wrong and how to fix it. We made compromises by gradually introducing motion interpolation and hardcoding the gaits we wanted, as explained on the last section.
+    - Another challenge we faced was implementing an interface to control the bot over WiFi. This has been done with multiple libraries that are listed in our platformio.ini. The most notable are the webserver and the websocket: The first just sends a file when a GET request arrive, while the second is set between the webapp and the ESP to exchange information during execution. The webapp sends the input the bot must follow, while the ESP sends the distances recorded by sensors. This task didn't create as much trouble for us as other ones, but it required a lot of background knowledge for the different APIs and how everything needed to be connected.
 
 
 ## Installation Requirements
@@ -74,6 +75,10 @@ The webpage and all of its content is loaded on the flash memory with SPIFFS, wh
             - a second joint to link the Femur and the Tibia
             - a toe with a TCP tip
 - Software requirements: Open the code folder inside VSCode, and install the PlatformIo Extension.
+    - Platformio will automatically update itself with the library in platformio.ini, so the one we already wrote can be used directly.
+    - To use the robot:
+        - Go to the platformIO tab on VSCode, then go to your board > "Build Filesystem Image". After this is finished, use "Upload Filesystem Image". This will send the data folder, containing the website, to the ESP's flash memory.
+        - Upload the code to the ESP.
 
   
 ## Make your own BeetleBot:
