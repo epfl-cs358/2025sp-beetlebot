@@ -89,11 +89,13 @@ The webpage and all of its content is loaded on the flash memory with SPIFFS, wh
     - Solder the thick cables to the buck converter
     - Solder some cables (preferably thick) from the out pins of the buck converter and connect it to the general (+) and (-) circuit of your system.
 It should look like this :
-
+![Soldering](Documentation/IMG_6721.HEIC)
 - Screw on the 18 servos to the main body and on their joints: make sure to set them to a given angle (setAngle) inside data.h and put them on at a right angle to their joints
+![Base](Documentation/IMG_6714.HEIC)
 - Place the buck converter, the battery, the protection board, and the bundle of cables inside the body and screw on the lid on top
 - Screw the multiplexer on the lid.
 - Place the ESP32 in its sloth and crew the T stick figure on top to keep it in place.
+![Base](Documentation/IMG_6711.HEIC)
 - Plug in all the servos on the multiplexer according to the mapping in the data.h, two of those servos (in our case the tibias of the two front legs) should be plugged in to the esp and powered from the power supply.
 - Plug all the cables coming out of the multiplexer (SDA, SCL,...)
 - Plug in the sensors on the esp, and screw them (or tape them).
