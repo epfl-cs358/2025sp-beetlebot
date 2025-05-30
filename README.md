@@ -88,6 +88,8 @@ The webpage and all of its content is loaded on the flash memory with SPIFFS, wh
     - Solder the protection board 2 : thick cables on 12.6V for the (+) and 4.2V for the (-) : This will be for the consumer side.
     - Solder the thick cables to the buck converter
     - Solder some cables (preferably thick) from the out pins of the buck converter and connect it to the general (+) and (-) circuit of your system.
+It should look like this :
+
 - Screw on the 18 servos to the main body and on their joints: make sure to set them to a given angle (setAngle) inside data.h and put them on at a right angle to their joints
 - Place the buck converter, the battery, the protection board, and the bundle of cables inside the body and screw on the lid on top
 - Screw the multiplexer on the lid.
@@ -134,7 +136,6 @@ Explain how to use your project. Include:
     - You have different movement categories that you may change with the button 'change movement type'
     - Wether you are on AZERTY or QWERTZ, you can use THE WASD / ZQSD to move
 - Have fun!
-
 ## Troubleshooting
 
 There might be issues connecting to the ESP32 sometimes, it could be a port issue, if that is the case just look up and download 'CH340 driver'
